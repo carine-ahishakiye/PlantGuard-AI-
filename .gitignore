@@ -1,0 +1,27 @@
+# Dataset
+data/
+plantvillage-dataset.zip
+
+# Model (too large for GitHub)
+model/plant_disease_model.h5
+
+# Database files
+plantguard.db
+plantguard_backup*.db
+backups/
+
+# Virtual environment
+venv/
+
+# Windows user profile folder
+%USERPROFILE%/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# System
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,2146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PlantGuard AI | Crop Disease Detector</title>
+  <meta name="description" content="AI-powered crop disease detection. PlantGuard identifies 38 plant diseases with 94% accuracy."/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* CSS VARIABLES  */
+    :root {
+      --gd:  #041f0f;   
+      --gm:  #14532d;   
+      --gb:  #16a34a;   
+      --gl:  #86efac;   
+      --gp:  #f0fdf4;   
+     
+      --amber:       #92400e;
+      --amber-bg:    #fffbeb;
+      --gold:        #ca8a04;
+      --gold-light:  #fef9c3;
+      
+      --ink:   #0c1a0e;
+      --ink2:  #1a2e1c;
+      --muted: #4b7060;
+      --card:  #ffffff;
+      --bg:    #f6faf6;
+      --border:#d1e8d4;
+     
+      --red:   #991b1b;
+      --red-bg:#fef2f2;
+    }
+    [data-theme="dark"] {
+      --ink:#e8f5e9; --ink2:#c8e6c9; --muted:#7fada0;
+      --card:#0f1f12; --bg:#080f09; --border:#1a3320; --gp:#0a1a0c;
+      --amber-bg:#1c1000; --gold-light:#1a1400; --red-bg:#1a0808;
+    }
+
+    /*  RESET & BASE  */
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;transition:background .3s,color .3s;}
+
+    /* ACCESSIBILITY  */
+    .skip-nav{position:fixed;top:-60px;left:16px;z-index:9999;background:var(--gb);color:white;padding:10px 18px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;transition:top .2s;}
+    .skip-nav:focus{top:8px;}
+    *:focus-visible{outline:2px solid var(--gb);outline-offset:3px;border-radius:4px;}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+
+    /*  PAGE SYSTEM  */
+    .pg{display:none;}
+    .pg.active{display:block;}
+    #pgSidebar{display:none;min-height:100vh;}
+    #pgSidebar.active{display:flex;}
+
+    /*  NAV  */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 60px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(14px);background:rgba(4,31,15,0.94);border-bottom:1px solid rgba(134,239,172,0.12);}
+    .logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:white;display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
+    .logo-dot{width:8px;height:8px;background:var(--gb);border-radius:50%;}
+    .nav-links{display:flex;gap:28px;list-style:none;align-items:center;}
+    .nav-links a{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+    .nav-links a:hover{color:var(--gl);}
+    .nav-ctrl{display:flex;align-items:center;gap:8px;}
+    .nbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+    .nbtn:hover{background:rgba(255,255,255,.22);}
+    .nbtn.primary{background:var(--gb);border-color:var(--gb);}
+    .nbtn.primary:hover{background:#15803d;}
+    .icon-btn{width:34px;height:34px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+    .icon-btn:hover{background:rgba(255,255,255,.22);}
+    .icon-btn .gi{display:inline-block;transition:transform .4s;}
+    .icon-btn:hover .gi{transform:rotate(90deg);}
+
+    /*  HERO */
+    .hero{min-height:100vh;background:var(--gd);position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:center;overflow:hidden;}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 70% 40%,rgba(22,163,74,.12),transparent),radial-gradient(ellipse 50% 70% at 20% 80%,rgba(20,83,45,.25),transparent);pointer-events:none;z-index:0;}
+    .hero-bg{position:absolute;border-radius:50%;background:radial-gradient(circle,var(--gb),var(--gm));opacity:.18;}
+    .hero-bg.c1{width:600px;height:600px;top:-200px;right:-100px;}
+    .hero-bg.c2{width:300px;height:300px;bottom:-100px;left:80px;opacity:.12;}
+    .hero-content{padding:80px 60px 80px 80px;position:relative;z-index:1;}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(22,163,74,.1);border:1px solid rgba(134,239,172,.25);border-radius:999px;padding:6px 16px;font-size:11px;font-weight:700;color:var(--gl);letter-spacing:.1em;text-transform:uppercase;margin-bottom:28px;}
+    .hero-badge::before{content:'';width:6px;height:6px;background:var(--gb);border-radius:50%;animation:pulse 2s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);}}
+    .hero h1{font-family:'Playfair Display',serif;font-size:clamp(42px,5.5vw,74px);font-weight:900;color:white;line-height:1.06;margin-bottom:22px;letter-spacing:-.01em;}
+    .hero h1 span{color:var(--gl);}
+    .hero-desc{font-size:16px;color:rgba(255,255,255,.6);line-height:1.75;max-width:440px;margin-bottom:36px;font-weight:300;}
+    .hero-stats{display:flex;gap:36px;margin-bottom:40px;}
+    .stat-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:white;line-height:1;text-shadow:0 2px 12px rgba(134,239,172,.25);}
+    .stat-lbl{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.07em;margin-top:3px;}
+    .hero-btns{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+    .cta-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gb),#22c55e);color:white;padding:15px 30px;border-radius:999px;font-size:14px;font-weight:700;text-decoration:none;transition:all .25s;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 6px 20px rgba(22,163,74,.32);letter-spacing:.01em;}
+    .cta-btn:hover{background:#15803d;transform:translateY(-2px);box-shadow:0 14px 40px rgba(22,163,74,.45);}
+    .cta-btn svg{transition:transform .2s;}
+    .cta-btn:hover svg{transform:translateX(4px);}
+    .ghost-btn{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.28);color:white;padding:15px 26px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;}
+    .ghost-btn:hover{background:rgba(255,255,255,.18);}
+    .hero-img-side{position:relative;height:100vh;display:flex;align-items:center;justify-content:center;z-index:1;}
+    .hero-img-wrap{position:relative;width:370px;height:470px;}
+    .hero-img-frame{width:100%;height:100%;border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.1);}
+    .hero-img-frame img{width:100%;height:100%;object-fit:cover;display:block;}
+    .float-card{position:absolute;background:white;border-radius:13px;padding:11px 15px;box-shadow:0 10px 36px rgba(0,0,0,.28);font-size:12px;font-weight:500;}
+    .float-card.fc1{bottom:-18px;left:-30px;display:flex;align-items:center;gap:9px;min-width:196px;animation:floatY 3s ease-in-out infinite;}
+    .float-card.fc2{top:30px;right:-26px;min-width:135px;animation:floatY 3s ease-in-out infinite 1.5s;}
+    @keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+    .fc-dot{width:9px;height:9px;border-radius:50%;background:var(--gb);flex-shrink:0;}
+    .fc-acc{color:var(--gb);font-weight:700;font-size:17px;}
+
+    /*  SECTIONS  */
+    .section{padding:100px 80px;position:relative;z-index:1;}
+    .sec-label{font-size:10px;font-weight:700;color:var(--gb);letter-spacing:.13em;text-transform:uppercase;margin-bottom:12px;}
+    .sec-title{font-family:'Playfair Display',serif;font-size:clamp(30px,4vw,52px);font-weight:800;color:var(--ink);line-height:1.15;margin-bottom:14px;letter-spacing:-.01em;}
+    .sec-sub{font-size:15px;color:var(--muted);max-width:520px;line-height:1.72;margin-bottom:56px;font-weight:300;}
+
+    /*  STEPS  */
+    .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+    .step-card{background:var(--card);border-radius:20px;padding:30px;border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s;}
+    .step-card:hover{transform:translateY(-5px);box-shadow:0 20px 55px rgba(4,31,15,.12);}
+    .step-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gb);transform:scaleX(0);transition:transform .3s;}
+    .step-card:hover::after{transform:scaleX(1);}
+    .step-num{font-family:'Playfair Display',serif;font-size:44px;font-weight:900;color:var(--border);position:absolute;top:14px;right:22px;line-height:1;}
+    .step-icon{font-size:34px;margin-bottom:14px;}
+    .step-card h3{font-size:17px;font-weight:600;margin-bottom:9px;}
+    .step-card p{font-size:13px;color:var(--muted);line-height:1.65;font-weight:300;}
+    [data-theme="dark"] .step-card{background:var(--card);border-color:var(--border);}
+
+    /*  DETECTOR SECTION  */
+    .det-section{background:linear-gradient(150deg,#041f0f 0%,#062515 50%,#041f0f 100%);padding:100px 80px;position:relative;overflow:hidden;z-index:1;}
+    .det-section::before{content:'';position:absolute;width:480px;height:480px;border-radius:50%;background:var(--gm);opacity:.18;top:-180px;right:-80px;}
+    .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;position:relative;z-index:1;}
+    .det-left .sec-title{color:white;}
+    .det-left .sec-sub{color:rgba(255,255,255,.52);}
+    .disease-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:28px;}
+    .dtag{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:5px 13px;font-size:11px;color:rgba(255,255,255,.58);}
+
+    /* Upload card */
+    .upload-card{background:var(--card);border-radius:26px;padding:32px;box-shadow:0 36px 90px rgba(0,0,0,.3);}
+    .upload-card h3{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+    .upload-card .sub{font-size:12px;color:var(--muted);margin-bottom:20px;font-weight:300;}
+    [data-theme="dark"] .upload-card{background:#1a1a1a;}
+
+    /* Workflow stepper */
+    .wf-stepper{display:flex;align-items:center;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.14);border-radius:12px;padding:12px 16px;margin-bottom:18px;gap:0;overflow-x:auto;}
+    .wf-step{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+    .wf-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);transition:all .2s;}
+    .wf-step.active .wf-circle{background:var(--gb);border-color:var(--gb);color:white;box-shadow:0 0 0 3px rgba(22,163,74,.18);}
+    .wf-step.done .wf-circle{background:var(--gm);border-color:var(--gm);color:white;}
+    .wf-lbl{font-size:11px;font-weight:600;color:var(--muted);}
+    .wf-step.active .wf-lbl,.wf-step.done .wf-lbl{color:var(--gm);}
+    .wf-conn{flex:1;min-width:14px;height:2px;background:var(--border);margin:0 5px;}
+    .wf-conn.done{background:var(--gm);}
+
+    /* Upload zone */
+    .upload-zone{border:2px dashed #86efac;border-radius:16px;padding:32px 18px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gp);margin-bottom:18px;}
+    .upload-zone:hover,.upload-zone.over{border-color:var(--gb);background:#dcfce7;transform:scale(1.005);box-shadow:0 0 0 4px rgba(22,163,74,.08);}
+    .upload-icon{width:52px;height:52px;background:var(--card);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;box-shadow:0 3px 12px rgba(0,0,0,.06);}
+    .upload-zone p{font-size:13px;color:var(--muted);line-height:1.6;}
+    .upload-zone strong{color:var(--gm);}
+    [data-theme="dark"] .upload-zone{background:#161e14;border-color:#2e4a34;}
+    [data-theme="dark"] .upload-zone:hover{background:#1e2e1e;border-color:var(--gb);}
+    #fileInput{display:none;}
+    #previewWrap{display:none;margin-bottom:18px;border-radius:14px;overflow:hidden;position:relative;}
+    #previewWrap img{width:100%;height:196px;object-fit:cover;display:block;}
+    .prev-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.42),transparent);display:flex;align-items:flex-end;justify-content:space-between;padding:12px;}
+    .prev-name{color:white;font-size:11px;font-weight:500;}
+    .prev-reset{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;backdrop-filter:blur(4px);}
+    .prev-reset:hover{background:rgba(255,255,255,.3);}
+
+    /* Analyse button */
+    .analyse-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gd),var(--gm));color:white;border:none;border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:.01em;box-shadow:0 4px 14px rgba(4,31,15,.18);}
+    .analyse-btn:hover:not(:disabled){background:linear-gradient(135deg,var(--gm),var(--gb));transform:translateY(-2px);box-shadow:0 10px 28px rgba(4,31,15,.3);}
+    .analyse-btn:disabled{background:#b0bdb5;cursor:not-allowed;}
+
+    /* Loading */
+    .loading-state{display:none;text-align:center;padding:24px 0 6px;}
+    .ring{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--gb);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-state p{font-size:13px;color:var(--muted);}
+
+    /* Result box */
+    .result-box{display:none;margin-top:18px;border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+    .result-head{padding:16px 18px;display:flex;align-items:center;gap:12px;}
+    .result-head.healthy{background:#e8f7ee;}
+    .result-head.disease{background:var(--amber-bg);}
+    .result-head.danger{background:var(--red-bg);}
+    [data-theme="dark"] .result-head.healthy{background:#1a2e1a;}
+    [data-theme="dark"] .result-head.disease{background:#1c1200;}
+    [data-theme="dark"] .result-head.danger{background:#2e1010;}
+    .result-icon{font-size:26px;}
+    .result-cond{font-size:15px;font-weight:700;color:var(--ink);text-transform:capitalize;}
+    .result-plant{font-size:11px;color:var(--muted);margin-top:2px;}
+    .result-body{padding:14px 18px;background:var(--gp);}
+    [data-theme="dark"] .result-body{background:#161e14;}
+    .conf-row{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:7px;}
+    .conf-track{background:var(--border);border-radius:999px;height:7px;overflow:hidden;}
+    [data-theme="dark"] .conf-track{background:#2e2e2e;}
+    .conf-fill{height:7px;border-radius:999px;background:linear-gradient(90deg,var(--gb),#1a9e5a);width:0%;transition:width .8s cubic-bezier(.25,1,.5,1);}
+    .conf-fill.dis{background:linear-gradient(90deg,var(--amber),#e8931a);}
+    .result-meta{font-size:10px;color:#aaa;margin-top:8px;font-family:monospace;}
+    .pred-ms{font-size:10px;color:var(--muted);margin-top:7px;display:flex;align-items:center;gap:4px;}
+
+    /* Advice */
+    .advice-box{display:none;margin-top:12px;padding:16px 18px;border-radius:13px;border-left:4px solid var(--gb);background:var(--gp);}
+    .advice-box.dis-adv{border-left-color:var(--gold);background:var(--amber-bg);}
+    [data-theme="dark"] .advice-box{background:#1a2a1a;}
+    [data-theme="dark"] .advice-box.dis-adv{background:#1a1000;}
+    .advice-title{font-size:12px;font-weight:700;color:var(--gm);margin-bottom:12px;display:block;}
+    .advice-title.dis{color:#c47a00;}
+
+    /* Share row */
+    .share-row{display:none;gap:7px;margin-top:12px;}
+    .share-btn{flex:1;padding:9px 10px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);background:var(--card);color:var(--ink);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;}
+    .share-btn:hover{border-color:var(--gb);color:var(--gm);}
+    .share-btn.wa:hover{border-color:#25d366;color:#25d366;}
+    .share-btn.copied{border-color:var(--gb);color:var(--gb);}
+    [data-theme="dark"] .share-btn{background:#1a1a1a;border-color:#2e2e2e;color:#f1f1f1;}
+
+    /* History panel */
+    .hist-panel{display:none;margin-top:12px;border-radius:13px;overflow:hidden;border:1px solid var(--border);}
+    .hist-panel.visible{display:block;}
+    .hist-head{padding:10px 14px;background:var(--gp);font-size:11px;font-weight:700;color:var(--gm);text-transform:uppercase;letter-spacing:.07em;display:flex;justify-content:space-between;}
+    .hist-item{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;transition:background .15s;}
+    .hist-item:last-child{border-bottom:none;}
+    .hist-item:hover{background:var(--gp);}
+    .hist-plant{font-size:12px;font-weight:600;color:var(--ink);}
+    .hist-cond{font-size:10px;color:var(--muted);margin-top:1px;}
+    .hist-conf{font-size:11px;font-weight:700;color:var(--gb);flex-shrink:0;}
+    .hist-empty{padding:20px;text-align:center;font-size:12px;color:var(--muted);}
+
+    /* PERFORMANCE DASHBOARD  */
+    .perf-section{padding:90px 80px;background:linear-gradient(180deg,#edf7ed 0%,var(--bg) 100%);}
+    .perf-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:40px;}
+    .perf-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 10px rgba(4,31,15,.06);}
+    .perf-card:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(4,31,15,.14);}
+    [data-theme="dark"] .perf-card{background:#1a1a1a;border-color:#2e2e2e;}
+    .perf-card-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:18px;}
+    .bar-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+    .bar-lbl{font-size:10px;color:var(--muted);width:76px;flex-shrink:0;text-align:right;}
+    .bar-track{flex:1;height:7px;background:var(--border);border-radius:999px;overflow:hidden;}
+    .bar-fill{height:7px;border-radius:999px;background:linear-gradient(90deg,var(--gb),#1a9e5a);transition:width 1s cubic-bezier(.25,1,.5,1);}
+    .bar-fill.amber-fill{background:linear-gradient(90deg,var(--gold),#f0c040);}
+    .bar-pct{font-size:10px;font-weight:700;color:var(--gm);width:30px;}
+    .donut-wrap{display:flex;flex-direction:column;align-items:center;}
+    .donut-rel{position:relative;width:150px;height:150px;}
+    .donut-svg{transform:rotate(-90deg);}
+    .donut-track{fill:none;stroke:var(--border);stroke-width:10;}
+    .donut-fill-h{fill:none;stroke:#16a34a;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.25,1,.5,1);stroke-dasharray:376;stroke-dashoffset:376;}
+    .donut-fill-d{fill:none;stroke:var(--amber);stroke-width:10;stroke-linecap:round;transition:all 1.2s cubic-bezier(.25,1,.5,1);stroke-dasharray:376;stroke-dashoffset:376;}
+    .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+    .donut-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--ink);line-height:1;}
+    .donut-sub{font-size:9px;color:var(--muted);margin-top:2px;}
+    .donut-legend{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;justify-content:center;}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+    .legend-dot{width:8px;height:8px;border-radius:50%;}
+    .spark-big{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--ink);margin-bottom:3px;}
+    .spark-trend{font-size:12px;color:var(--gb);font-weight:600;margin-bottom:10px;}
+    .heat-row{display:flex;gap:3px;flex-wrap:wrap;margin-top:12px;}
+    .heat-cell{width:16px;height:16px;border-radius:3px;background:var(--border);transition:opacity .3s;}
+
+    /* DISEASES SECTION  */
+    .diseases-section{padding:100px 80px;background:linear-gradient(180deg,var(--bg) 0%,#edf7ed 100%);}
+    .search-wrap{position:relative;max-width:400px;margin-bottom:28px;}
+    .search-input{width:100%;padding:11px 40px 11px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--ink);outline:none;transition:border-color .2s;}
+    .search-input:focus{border-color:var(--gb);}
+    .search-ico{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+    .search-cnt{position:absolute;right:36px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted);pointer-events:none;}
+    @keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+    .sk{border-radius:11px;height:54px;background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%);background-size:400px 100%;animation:shimmer 1.4s ease-in-out infinite;}
+    .disease-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px;max-height:300px;overflow:hidden;position:relative;transition:max-height .5s ease;}
+    .disease-grid.expanded{max-height:2000px;}
+    .disease-grid::after{content:'';position:absolute;bottom:0;left:0;right:0;height:70px;background:linear-gradient(transparent,var(--bg));pointer-events:none;transition:opacity .3s;}
+    .disease-grid.expanded::after{opacity:0;}
+    [data-theme="dark"] .disease-grid::after{background:linear-gradient(transparent,var(--bg));}
+    .d-chip{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:9px 13px;font-size:11px;color:var(--ink);transition:all .18s;cursor:default;}
+    .d-chip:hover{border-color:var(--gb);color:var(--gm);background:var(--gp);}
+    .d-chip.healthy{border-color:var(--gl);color:var(--gm);background:var(--gp);font-weight:500;}
+    [data-theme="dark"] .d-chip{background:#1a1a1a;border-color:#2e2e2e;color:#f1f1f1;}
+    .show-more{display:block;margin:24px auto 0;background:none;border:2px solid var(--gb);color:var(--gm);padding:9px 28px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:all .25s;font-family:'DM Sans',sans-serif;letter-spacing:.02em;}
+    .show-more:hover{background:var(--gb);color:white;}
+
+    /*  ABOUT SECTION  */
+    .about-section{background:linear-gradient(135deg,#ffffff 0%,#f6faf6 100%);padding:100px 80px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+    [data-theme="dark"] .about-section{background:#111111;}
+    .about-img{border-radius:22px;overflow:hidden;height:420px;background:var(--gp);}
+    .about-img img{width:100%;height:100%;object-fit:cover;display:block;}
+    .about-accent{display:inline-block;background:var(--gp);color:var(--gm);padding:5px 16px;border-radius:999px;font-size:11px;font-weight:800;margin-bottom:18px;border:1px solid var(--gl);letter-spacing:.04em;text-transform:uppercase;}
+    .tech-stack{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px;}
+    .tech-pill{background:var(--gp);color:var(--gm);padding:5px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--gl);letter-spacing:.01em;}
+
+    /*  COMPLIANCE BAR */
+    .comp-bar{display:flex;gap:7px;flex-wrap:wrap;padding:11px 16px;background:linear-gradient(90deg,#f0fdf4,#fafff6);border-radius:11px;border:1px solid rgba(22,163,74,.18);margin-bottom:16px;align-items:center;}
+    [data-theme="dark"] .comp-bar{background:#1a2a1a;}
+    .comp-badge{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:3px 9px;font-size:9px;font-weight:800;color:var(--gm);text-transform:uppercase;letter-spacing:.04em;}
+    .comp-lbl{font-size:10px;color:var(--muted);}
+
+    /*  MODALS  */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
+    .modal-overlay.active{display:flex;}
+    .modal{background:var(--card);border-radius:22px;padding:38px;width:100%;max-width:415px;position:relative;box-shadow:0 36px 90px rgba(0,0,0,.42);animation:mIn .24s ease;}
+    @keyframes mIn{from{opacity:0;transform:translateY(18px) scale(.97);}to{opacity:1;transform:none;}}
+    .m-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:var(--border);color:var(--ink);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+    .m-close:hover{background:var(--gb);color:white;}
+    .modal h2{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+    .modal-sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
+    .m-tabs{display:flex;background:var(--gp);border-radius:11px;padding:4px;margin-bottom:22px;gap:4px;}
+    .m-tab{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s;}
+    .m-tab.active{background:var(--gd);color:white;}
+    .form-group{margin-bottom:14px;}
+    .form-label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+    .form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--ink);outline:none;transition:border-color .2s;}
+    .form-input:focus{border-color:var(--gb);}
+    .form-error{font-size:11px;color:#e85d4a;margin-top:5px;display:none;}
+    .submit-btn{width:100%;padding:13px;background:var(--gd);color:white;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:7px;}
+    .submit-btn:hover{background:var(--gm);}
+    .submit-btn:disabled{background:#b0bdb5;cursor:not-allowed;}
+    .user-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;}
+    .user-av{width:20px;height:20px;background:var(--gb);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+
+    /* Share modal */
+    .share-modal-box{background:var(--card);border-radius:22px;padding:32px;width:100%;max-width:440px;position:relative;box-shadow:0 36px 90px rgba(0,0,0,.42);animation:mIn .24s ease;}
+    [data-theme="dark"] .share-modal-box{background:#1a1a1a;}
+    .share-preview{background:var(--gp);border-radius:13px;padding:16px 18px;margin-bottom:20px;border:1px solid var(--border);}
+    [data-theme="dark"] .share-preview{background:#1e2a1e;border-color:#2e3e2e;}
+    .share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .share-opt{padding:14px 10px;border-radius:13px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;text-align:center;transition:all .2s;font-family:'DM Sans',sans-serif;}
+    .share-opt:hover{border-color:var(--gb);background:var(--gp);transform:translateY(-2px);}
+    [data-theme="dark"] .share-opt{background:#1a1a1a;border-color:#2e2e2e;}
+    [data-theme="dark"] .share-opt:hover{background:#222;}
+    .share-opt-icon{font-size:24px;margin-bottom:6px;}
+    .share-opt-lbl{font-size:12px;font-weight:700;color:var(--ink);}
+    .share-opt-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+
+    /* Settings modal */
+    .settings-box{background:var(--card);border-radius:22px;padding:0;width:100%;max-width:450px;position:relative;box-shadow:0 36px 90px rgba(0,0,0,.42);animation:mIn .24s ease;overflow:hidden;}
+    [data-theme="dark"] .settings-box{background:#1a1a1a;}
+    .settings-head{background:var(--gd);padding:26px 30px;position:relative;overflow:hidden;}
+    .settings-head::after{content:'';position:absolute;width:160px;height:160px;border-radius:50%;background:var(--gm);opacity:.2;top:-50px;right:-36px;}
+    .settings-av{width:52px;height:52px;background:var(--gb);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:white;margin-bottom:10px;position:relative;z-index:1;border:3px solid rgba(255,255,255,.18);}
+    .settings-uname{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:white;position:relative;z-index:1;}
+    .settings-uemail{font-size:11px;color:rgba(255,255,255,.48);margin-top:2px;position:relative;z-index:1;}
+    .settings-body{padding:18px 26px 24px;max-height:65vh;overflow-y:auto;}
+    .settings-section{margin-bottom:20px;}
+    .settings-section-title{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+    .settings-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:3px;}
+    .stat-box{background:var(--gp);border-radius:11px;padding:10px;text-align:center;border:1px solid var(--border);}
+    [data-theme="dark"] .stat-box{background:#1e2a1e;border-color:#2e3e2e;}
+    .stat-box-num{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--ink);}
+    .stat-box-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+    .guest-box{background:var(--gp);border-radius:13px;padding:18px;border:1px solid var(--border);text-align:center;margin-bottom:3px;}
+    [data-theme="dark"] .guest-box{background:#1e2a1e;border-color:#2e3e2e;}
+    .guest-box-icon{font-size:28px;margin-bottom:7px;}
+    .guest-box-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+    .guest-box-sub{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+    .guest-signin-btn{background:var(--gb);color:white;border:none;padding:9px 20px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;}
+    .guest-signin-btn:hover{background:var(--gm);}
+    .s-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);}
+    .s-row:last-child{border-bottom:none;}
+    [data-theme="dark"] .s-row{border-color:#2e2e2e;}
+    .s-row-left{display:flex;align-items:center;gap:10px;}
+    .s-row-icon{width:32px;height:32px;border-radius:9px;background:var(--gp);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+    [data-theme="dark"] .s-row-icon{background:#1e2a1e;}
+    .s-row-lbl{font-size:13px;font-weight:500;color:var(--ink);}
+    .s-row-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+    .stoggle{width:40px;height:22px;border-radius:999px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+    .stoggle.on{background:var(--gb);}
+    .stoggle.off{background:var(--border);}
+    .stoggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+    .stoggle.on::after{left:21px;}
+    .stoggle.off::after{left:3px;}
+    .s-select{padding:5px 9px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--ink);outline:none;cursor:pointer;}
+    .s-select:focus{border-color:var(--gb);}
+    [data-theme="dark"] .s-select{background:#1a1a1a;color:#f1f1f1;border-color:#2e2e2e;}
+    .danger-btn{width:100%;padding:10px;background:none;border:1.5px solid #fee2e2;color:#dc2626;border-radius:11px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px;}
+    .danger-btn:hover{background:#fee2e2;}
+
+    /*  ONBOARDING WIZARD  */
+    .wizard-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:900;backdrop-filter:blur(5px);align-items:center;justify-content:center;}
+    .wizard-overlay.active{display:flex;}
+    .wizard-box{background:var(--card);border-radius:24px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 36px 90px rgba(0,0,0,.38);animation:mIn .28s ease;margin:0 16px;}
+    [data-theme="dark"] .wizard-box{background:#1a1a1a;}
+    .wizard-head{background:linear-gradient(135deg,#041f0f,#14532d);padding:28px 32px 24px;position:relative;overflow:hidden;}
+    .wizard-head::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05);top:-60px;right:-60px;}
+    .wiz-dots{display:flex;gap:7px;margin-bottom:16px;position:relative;z-index:1;}
+    .wiz-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);transition:all .3s;cursor:pointer;}
+    .wiz-dot.active{background:white;width:20px;border-radius:4px;}
+    .wizard-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:white;margin-bottom:5px;position:relative;z-index:1;}
+    .wizard-sub{font-size:12px;color:rgba(255,255,255,.6);position:relative;z-index:1;line-height:1.6;}
+    .wizard-body{padding:24px 30px 28px;}
+    .wiz-progress{height:3px;background:var(--border);border-radius:999px;margin-bottom:22px;overflow:hidden;}
+    .wiz-progress-fill{height:3px;background:var(--gb);border-radius:999px;transition:width .4s ease;}
+    .wiz-step{display:none;}
+    .wiz-step.active{display:block;}
+    .wiz-icon-row{display:flex;align-items:center;gap:14px;padding:16px;background:var(--gp);border-radius:14px;margin-bottom:16px;border:1px solid rgba(22,163,74,.18);}
+    [data-theme="dark"] .wiz-icon-row{background:#1e2a1e;border-color:#2e3e2e;}
+    .wiz-big-icon{font-size:32px;flex-shrink:0;}
+    .wiz-step-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+    .wiz-step-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+    .wiz-tips{display:flex;flex-direction:column;gap:9px;margin-bottom:20px;}
+    .wiz-tip{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--muted);line-height:1.5;}
+    .wiz-tip-dot{width:19px;height:19px;border-radius:50%;background:var(--gb);color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+    .wiz-nav{display:flex;justify-content:space-between;align-items:center;}
+    .wiz-btn-back{padding:9px 18px;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+    .wiz-btn-back:hover{border-color:var(--gb);color:var(--gb);}
+    .wiz-btn-next{padding:10px 22px;background:var(--gb);color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;}
+    .wiz-btn-next:hover{background:#15803d;transform:translateY(-1px);}
+
+    /*  CONFIG PANEL  */
+    .config-drawer{position:fixed;top:0;right:-380px;bottom:0;width:360px;background:var(--card);border-left:1px solid var(--border);z-index:400;box-shadow:-6px 0 32px rgba(0,0,0,.12);overflow-y:auto;transition:right .3s ease;}
+    .config-drawer.open{right:0;}
+    [data-theme="dark"] .config-drawer{background:#1a1a1a;border-color:#2e2e2e;}
+    .config-head{padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1;}
+    [data-theme="dark"] .config-head{background:#1a1a1a;border-color:#2e2e2e;}
+    .config-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--ink);}
+    .config-x{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .15s;}
+    .config-x:hover{background:var(--gp);color:var(--gb);border-color:var(--gb);}
+    .config-body{padding:18px 22px;}
+    .config-sec{margin-bottom:22px;}
+    .config-sec-title{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;}
+    .config-row{padding:10px 0;border-bottom:1px solid var(--border);}
+    .config-row:last-child{border-bottom:none;}
+    .config-lbl{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+    .config-desc{font-size:10px;color:var(--muted);margin-bottom:9px;}
+    .config-slider{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:999px;background:var(--border);outline:none;cursor:pointer;}
+    .config-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gb);cursor:pointer;box-shadow:0 2px 5px rgba(22,163,74,.32);}
+    .config-val{font-size:12px;font-weight:700;color:var(--gb);text-align:right;margin-top:5px;}
+    .config-select{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--ink);outline:none;cursor:pointer;}
+    .config-select:focus{border-color:var(--gb);}
+    [data-theme="dark"] .config-select{background:#1a1a1a;color:#f1f1f1;border-color:#2e2e2e;}
+    .cfg-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+    .cfg-toggle-row:last-child{border-bottom:none;}
+    [data-theme="dark"] .cfg-toggle-row{border-color:#2e2e2e;}
+    .cfg-tog-lbl{font-size:12px;font-weight:500;color:var(--ink);}
+    .cfg-tog-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+    .config-backdrop{display:none;position:fixed;inset:0;z-index:399;background:rgba(0,0,0,.28);}
+    .config-backdrop.active{display:block;}
+
+    /*  AUDIT LOG */
+    .audit-log-wrap{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+    [data-theme="dark"] .audit-log-wrap{background:#1a1a1a;border-color:#2e2e2e;}
+    .audit-log-head{padding:10px 14px;background:var(--bg);font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+    [data-theme="dark"] .audit-log-head{background:#111;}
+    .audit-entry{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;animation:entryIn .3s ease;}
+    @keyframes entryIn{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:none;}}
+    .audit-entry:last-child{border-bottom:none;}
+    [data-theme="dark"] .audit-entry{border-color:#2e2e2e;}
+    .audit-dot-{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .audit-dot-scan{background:#16a34a;}
+    .audit-dot-auth{background:#2563eb;}
+    .audit-dot-export{background:var(--amber);}
+    .audit-dot-delete{background:#dc2626;}
+    .audit-action{font-size:11px;font-weight:500;color:var(--ink);flex:1;}
+    .audit-time-lbl{font-size:9px;color:var(--muted);font-family:monospace;flex-shrink:0;}
+
+    /*  TOAST STACK */
+    .toast-stack{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:7px;z-index:9999;pointer-events:none;align-items:center;}
+    .toast-item{color:white;padding:11px 22px;border-radius:999px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.2);animation:tUp .28s ease,tDown .28s ease 2.7s forwards;pointer-events:none;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+    @keyframes tUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+    @keyframes tDown{to{opacity:0;transform:translateY(10px);}}
+
+    /*  SIDEBAR DASHBOARD */
+    .sd-sidebar{width:228px;min-height:100vh;background:linear-gradient(160deg,#041f0f 0%,#0a2e14 45%,#062015 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:150;box-shadow:4px 0 18px rgba(0,0,0,.14);}
+    .sd-logo-area{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.06);}
+    .sd-logo{display:flex;align-items:center;gap:9px;font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:white;cursor:pointer;text-decoration:none;}
+    .sd-logo-icon{width:32px;height:32px;background:var(--gb);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+    .sd-logo-sub{font-size:8px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Sans',sans-serif;}
+    .sd-nav{padding:12px 9px;flex:1;display:flex;flex-direction:column;gap:2px;}
+    .sd-sec-lbl{font-size:9px;font-weight:600;color:rgba(255,255,255,.22);letter-spacing:.12em;text-transform:uppercase;padding:9px 9px 4px;}
+    .sd-nav-item{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;color:rgba(255,255,255,.48);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
+    .sd-nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.84);}
+    .sd-nav-item.active{background:var(--gb);color:white;font-weight:600;}
+    .sd-nav-icon{font-size:14px;width:17px;text-align:center;flex-shrink:0;}
+    .sd-nav-badge{margin-left:auto;background:var(--gm);color:white;font-size:8px;font-weight:700;padding:2px 6px;border-radius:999px;}
+    .sd-nav-item.active .sd-nav-badge{background:rgba(255,255,255,.22);}
+    .sd-user-area{padding:10px 9px;border-top:1px solid rgba(255,255,255,.06);}
+    .sd-user-row{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;cursor:pointer;transition:background .15s;}
+    .sd-user-row:hover{background:rgba(255,255,255,.06);}
+    .sd-user-av{width:28px;height:28px;border-radius:50%;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;}
+    .sd-user-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.82);}
+    .sd-user-email{font-size:9px;color:rgba(255,255,255,.32);}
+    .sd-chevron{margin-left:auto;color:rgba(255,255,255,.22);font-size:10px;}
+    .sd-main{margin-left:228px;flex:1;display:flex;flex-direction:column;min-height:100vh;background:#f5fbf5;}
+    [data-theme="dark"] .sd-main{background:#0f0f0f;}
+    .sd-topbar{height:58px;background:#fdfffd;border-bottom:1px solid #cfe8cf;display:flex;align-items:center;padding:0 26px;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+    [data-theme="dark"] .sd-topbar{background:#1a1a1a;border-color:#2e2e2e;}
+    .sd-topbar-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--ink);flex:1;}
+    .sd-icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'DM Sans',sans-serif;}
+    .sd-icon-btn:hover{background:var(--gp);border-color:var(--gb);color:var(--gb);}
+    .sd-content{padding:26px;flex:1;}
+    .sd-page{display:none;}
+    .sd-page.active{display:block;}
+
+    /* SD Stats */
+    .sd-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px;}
+    .sd-stat-card{background:white;border:1px solid #d1e8d4;border-radius:15px;padding:18px;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(4,31,15,.06);}
+    [data-theme="dark"] .sd-stat-card{background:#1a1a1a;border-color:#2e2e2e;}
+    .sd-stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(4,31,15,.12);}
+    .sd-stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .sd-stat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .sd-stat-icon.g{background:#f0fdf4;}
+    .sd-stat-icon.a{background:#fffbeb;}
+    .sd-stat-icon.b{background:#eff6ff;}
+    .sd-trend{font-size:9px;font-weight:700;padding:3px 7px;border-radius:999px;background:#f0fdf4;color:#16a34a;}
+    .sd-stat-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#1c1917;line-height:1;}
+    [data-theme="dark"] .sd-stat-val{color:#f1f1f1;}
+    .sd-stat-lbl{font-size:10px;color:#78716c;margin-top:3px;}
+
+    /* SD Grid */
+    .sd-grid{display:grid;grid-template-columns:1fr 340px;gap:17px;}
+    .sd-detector-card{background:white;border:1px solid #d1e8d4;border-radius:18px;overflow:hidden;box-shadow:0 3px 12px rgba(4,31,15,.07);}
+    [data-theme="dark"] .sd-detector-card{background:#1a1a1a;border-color:#2e2e2e;}
+    .sd-card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .sd-card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--ink);}
+    .sd-card-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+    .sd-ai-badge{display:flex;align-items:center;gap:5px;background:var(--gp);border:1px solid rgba(45,158,95,.18);border-radius:999px;padding:4px 9px;font-size:10px;font-weight:600;color:var(--gb);}
+    .sd-ai-dot{width:5px;height:5px;border-radius:50%;background:var(--gb);animation:pulse 2s infinite;}
+    .sd-card-body{padding:20px;}
+    .sd-upload-zone{border:2px dashed #d1fae5;border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#f0fdf4;margin-bottom:12px;}
+    [data-theme="dark"] .sd-upload-zone{background:#161e14;border-color:#1e2e20;}
+    .sd-upload-zone:hover,.sd-upload-zone.drag{border-color:#16a34a;background:#dcfce7;}
+    [data-theme="dark"] .sd-upload-zone:hover{background:#1e2e1e;}
+    .sd-upload-icon{width:48px;height:48px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px;box-shadow:0 2px 7px rgba(16,130,56,.11);}
+    .sd-upload-zone p{font-size:12px;color:#6b7280;line-height:1.5;}
+    .sd-upload-zone strong{color:#166534;}
+    .sd-analyse-btn{width:100%;padding:13px;background:linear-gradient(135deg,#14532d,#15803d);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;box-shadow:0 4px 12px rgba(22,163,74,.28);}
+    .sd-analyse-btn:hover:not(:disabled){background:linear-gradient(135deg,#052e16,#14532d);transform:translateY(-1px);box-shadow:0 6px 18px rgba(22,163,74,.38);}
+    .sd-analyse-btn:disabled{background:#d1d5db;cursor:not-allowed;box-shadow:none;}
+    .sd-result-box{display:none;margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+    .sd-result-head{padding:12px 14px;display:flex;align-items:center;gap:10px;}
+    .sd-result-head.healthy{background:#e8f7ee;}
+    .sd-result-head.disease{background:#fff4ec;}
+    .sd-result-head.danger{background:#fdecea;}
+    [data-theme="dark"] .sd-result-head.healthy{background:#1a2e1a;}
+    [data-theme="dark"] .sd-result-head.disease{background:#2e2010;}
+    .sd-result-body{padding:12px 14px;background:var(--bg);}
+    [data-theme="dark"] .sd-result-body{background:#161e14;}
+    .sd-conf-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+    .sd-conf-track{background:var(--border);border-radius:999px;height:6px;overflow:hidden;}
+    .sd-conf-fill{height:6px;border-radius:999px;width:0%;transition:width .8s cubic-bezier(.25,1,.5,1);}
+    .sd-conf-fill.high{background:linear-gradient(90deg,var(--gb),#1a9e5a);}
+    .sd-conf-fill.med{background:linear-gradient(90deg,var(--gold),#f0c040);}
+    .sd-conf-fill.low{background:linear-gradient(90deg,#d94f3d,#e8756a);}
+    .sd-meta-row{display:flex;gap:8px;margin-top:7px;}
+    .sd-chip{font-size:9px;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:5px;font-family:monospace;}
+    .sd-why{font-size:10px;color:#2d6be4;cursor:pointer;margin-top:7px;font-weight:500;}
+    .sd-why:hover{text-decoration:underline;}
+    .sd-fb-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);}
+    .sd-fb-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--card);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+    .sd-fb-btn:hover,.sd-fb-btn.active{border-color:var(--gb);background:var(--gp);}
+    .sd-share-row{display:flex;gap:6px;margin-top:8px;}
+    .sd-share-btn{flex:1;padding:7px 8px;border-radius:7px;font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:1px solid var(--border);background:var(--card);color:var(--muted);display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s;}
+    .sd-share-btn:hover{border-color:var(--gb);color:var(--gb);background:var(--gp);}
+    .sd-share-btn.wa:hover{border-color:#25d366;color:#25d366;}
+    [data-theme="dark"] .sd-share-btn{background:#1a1a1a;border-color:#2e2e2e;color:#aaa;}
+    .sd-advice-box{display:none;margin-top:9px;padding:12px;border-radius:10px;border-left:3px solid var(--gb);background:var(--gp);}
+    .sd-advice-box.warn{border-left-color:var(--amber);background:#fffaf0;}
+    .sd-advice-box.danger{border-left-color:#d94f3d;background:#fdecea;}
+    [data-theme="dark"] .sd-advice-box{background:#1e2a1e;}
+    [data-theme="dark"] .sd-advice-box.warn{background:#1e1a10;}
+    .sd-advice-title{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+
+    /* SD History */
+    .sd-history-card{background:white;border:1px solid #d1e8d4;border-radius:18px;overflow:hidden;position:sticky;top:74px;box-shadow:0 3px 12px rgba(4,31,15,.07);}
+    [data-theme="dark"] .sd-history-card{background:#1a1a1a;border-color:#2e2e2e;}
+    .sd-hist-item{padding:11px 16px;border-bottom:1px solid #f0f5f0;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background .15s;cursor:pointer;}
+    [data-theme="dark"] .sd-hist-item{border-color:#2e2e2e;}
+    .sd-hist-item:last-child{border-bottom:none;}
+    .sd-hist-item:hover{background:#f0fdf4;}
+    [data-theme="dark"] .sd-hist-item:hover{background:#161e14;}
+    .sd-hi-plant{font-size:11px;font-weight:600;color:#1c1917;}
+    [data-theme="dark"] .sd-hi-plant{color:#f1f1f1;}
+    .sd-hi-cond{font-size:9px;color:#78716c;margin-top:1px;}
+    .sd-hi-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0;}
+    .sd-hi-badge.ok{background:#f0fdf4;color:#16a34a;}
+    .sd-hi-badge.dis{background:#fffbeb;color:#d97706;}
+
+    /* SD QA */
+    .sd-qa-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+    .sd-qa-card{background:white;border:1px solid #d1e8d4;border-radius:13px;padding:14px;text-align:center;cursor:pointer;transition:all .18s;box-shadow:0 2px 8px rgba(4,31,15,.06);}
+    [data-theme="dark"] .sd-qa-card{background:#1a1a1a;border-color:#2e2e2e;}
+    .sd-qa-card:hover{border-color:#16a34a;background:#f0fdf4;transform:translateY(-2px);box-shadow:0 4px 11px rgba(16,130,56,.1);}
+    [data-theme="dark"] .sd-qa-card:hover{background:#1e2a1e;}
+    .sd-qa-icon{font-size:19px;margin-bottom:4px;}
+    .sd-qa-label{font-size:10px;font-weight:600;color:#1c1917;}
+    [data-theme="dark"] .sd-qa-label{color:#f1f1f1;}
+
+    /* SD Disease library */
+    .sd-d-chip{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:10px;color:var(--ink);transition:all .15s;cursor:default;}
+    .sd-d-chip:hover{border-color:var(--gb);color:var(--gb);background:var(--gp);}
+    .sd-d-chip.ok{border-color:rgba(45,158,95,.28);color:var(--gb);background:var(--gp);}
+    .sd-d-name{font-weight:600;margin-bottom:1px;}
+    .sd-d-cond{color:var(--muted);font-size:9px;}
+
+    /* Privacy */
+    .sd-priv-hero{background:var(--gd);border-radius:14px;padding:24px;color:white;margin-bottom:18px;position:relative;overflow:hidden;}
+    .sd-priv-hero::after{content:'🔒';position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:50px;opacity:.11;}
+    .sd-priv-hero h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;}
+    .sd-priv-hero p{font-size:12px;opacity:.72;max-width:360px;line-height:1.6;}
+    .sd-priv-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:13px;}
+    [data-theme="dark"] .sd-priv-card{background:#1a1a1a;border-color:#2e2e2e;}
+    .sd-priv-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--ink);}
+    .sd-priv-body{padding:14px 18px;font-size:11px;color:var(--muted);line-height:1.8;}
+    .sd-priv-body ul{padding-left:14px;}
+    .sd-priv-body li{margin-bottom:4px;}
+    .sd-priv-body strong{color:var(--ink);font-weight:600;}
+    .sd-data-table{width:100%;border-collapse:collapse;}
+    .sd-data-table th,.sd-data-table td{padding:8px 11px;text-align:left;font-size:10px;border-bottom:1px solid var(--border);}
+    .sd-data-table th{font-weight:700;color:var(--muted);background:var(--bg);text-transform:uppercase;letter-spacing:.04em;}
+    .sd-data-table td{color:var(--muted);}
+    .sd-data-table tr:last-child td{border-bottom:none;}
+    .sd-ptag{display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:700;}
+    .sd-ptag.y{background:var(--gp);color:var(--gb);}
+    .sd-ptag.n{background:#fdecea;color:#d94f3d;}
+    .sd-ptag.e{background:#eaf0fd;color:#2d6be4;}
+
+    /* SD Settings */
+    .sd-settings-layout{display:flex;gap:18px;max-width:780px;}
+    .sd-settings-nav{display:flex;flex-direction:column;gap:2px;width:168px;flex-shrink:0;}
+    .sd-settings-nav-item{padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;}
+    .sd-settings-nav-item:hover{background:var(--gp);color:var(--gb);}
+    .sd-settings-nav-item.active{background:var(--gp);color:var(--gb);font-weight:600;}
+    .sd-settings-content{flex:1;}
+    .sd-settings-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;}
+    [data-theme="dark"] .sd-settings-card{background:#1a1a1a;border-color:#2e2e2e;}
+    .sd-settings-head{padding:14px 20px;border-bottom:1px solid var(--border);}
+    .sd-settings-title{font-size:12px;font-weight:700;color:var(--ink);}
+    .sd-settings-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+    .sd-settings-row{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;}
+    .sd-settings-row:last-child{border-bottom:none;}
+    [data-theme="dark"] .sd-settings-row{border-color:#2e2e2e;}
+    .sd-settings-lbl{font-size:12px;font-weight:500;color:var(--ink);}
+    .sd-settings-desc{font-size:10px;color:var(--muted);margin-top:1px;}
+    .sd-toggle{width:40px;height:22px;background:var(--border);border-radius:999px;position:relative;cursor:pointer;transition:background .2s;border:none;flex-shrink:0;}
+    .sd-toggle.on{background:var(--gb);}
+    .sd-toggle::after{content:'';position:absolute;width:16px;height:16px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+    .sd-toggle.on::after{transform:translateX(18px);}
+    .sd-select{padding:5px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--ink);outline:none;cursor:pointer;}
+    .sd-select:focus{border-color:var(--gb);}
+    [data-theme="dark"] .sd-select{background:#1a1a1a;color:#f1f1f1;border-color:#2e2e2e;}
+    .sd-danger-btn{padding:7px 13px;border:1.5px solid #d94f3d;border-radius:7px;background:transparent;color:#d94f3d;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+    .sd-danger-btn:hover{background:#fdecea;}
+    .sd-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;}
+    .sd-tag.g{background:var(--gp);color:var(--gb);}
+
+    /* SD Profile */
+    .sd-profile-banner{background:linear-gradient(135deg,#0c2e1c,#166534);border-radius:18px;padding:26px;color:white;margin-bottom:18px;display:flex;align-items:center;gap:18px;}
+    .sd-profile-av{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0;border:3px solid rgba(255,255,255,.28);}
+    .sd-profile-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:3px;}
+    .sd-profile-email{font-size:12px;opacity:.6;}
+    .sd-profile-status{margin-top:8px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.14);padding:3px 11px;border-radius:999px;font-size:10px;font-weight:600;}
+
+    /* Live bar */
+    .sd-live-bar{display:none;padding:7px 26px;background:linear-gradient(90deg,#ecfdf5,#f0fdf4);border-bottom:1px solid rgba(22,163,74,.2);font-size:11px;color:var(--gm);align-items:center;gap:9px;}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--gb);animation:pulse 1.5s infinite;}
+    .live-sep{color:var(--muted);}
+
+    /* Compliance page */
+    .comp-banner{display:flex;align-items:center;gap:12px;padding:12px 18px;background:linear-gradient(90deg,#f0fdf4,#e8f7ee);border:1px solid rgba(22,163,74,.22);border-radius:11px;margin-bottom:14px;}
+    [data-theme="dark"] .comp-banner{background:#0e1e12;border-color:#1e3e22;}
+    .comp-gdpr{padding:3px 9px;border-radius:999px;font-size:9px;font-weight:800;background:#eff6ff;color:#1d4ed8;flex-shrink:0;}
+    .comp-local{padding:3px 9px;border-radius:999px;font-size:9px;font-weight:800;background:var(--gp);color:var(--gb);flex-shrink:0;}
+    .comp-text{font-size:11px;color:var(--muted);line-height:1.5;flex:1;}
+    .comp-text strong{color:var(--ink);}
+
+    /* Old dashboard */
+
+    /* Footer */
+    footer{background:linear-gradient(135deg,#041f0f,#062515);padding:44px 80px;display:flex;align-items:center;justify-content:space-between;z-index:1;position:relative;}
+    .footer-text{font-size:12px;color:rgba(255,255,255,.38);}
+    .footer-links{display:flex;gap:22px;}
+    .footer-links a{color:rgba(255,255,255,.38);text-decoration:none;font-size:12px;transition:color .2s;}
+    .footer-links a:hover{color:white;}
+
+    /* Scroll top */
+    .scroll-top{position:fixed;bottom:30px;right:30px;width:42px;height:42px;background:linear-gradient(135deg,var(--gm),var(--gb));color:white;border:none;border-radius:50%;font-size:17px;cursor:pointer;z-index:99;display:none;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(45,158,95,.42);transition:all .2s;}
+    .scroll-top:hover{background:var(--gm);transform:translateY(-3px);}
+    .scroll-top.visible{display:flex;}
+
+    /* Animations */
+    .fade-up{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease;}
+    .fade-up.visible{opacity:1;transform:none;}
+
+    /* Responsive */
+    @media(max-width:900px){
+      .hero{grid-template-columns:1fr;} .hero-img-side{display:none;}
+      .hero-content{padding:110px 28px 56px;} .section{padding:56px 28px;}
+      .steps-grid{grid-template-columns:1fr;} .det-section{padding:56px 28px;}
+      .det-grid{grid-template-columns:1fr;} .about-section{grid-template-columns:1fr;padding:56px 28px;}
+      .about-img{display:none;} nav{padding:14px 22px;} .nav-links{display:none;}
+      footer{flex-direction:column;gap:14px;text-align:center;padding:36px 28px;}
+      .diseases-section,.perf-section{padding:56px 28px;}
+          .sd-sidebar{transform:translateX(-100%);transition:transform .3s;} .sd-sidebar.open{transform:translateX(0);}
+      .sd-main{margin-left:0;} .sd-grid{grid-template-columns:1fr;}
+      .sd-stats-row{grid-template-columns:1fr 1fr;} .sd-settings-layout{flex-direction:column;}
+      .perf-grid{grid-template-columns:1fr;}
+    }
+    @media(max-width:600px){
+      .wf-stepper{flex-wrap:wrap;gap:7px;} .wf-conn{display:none;}
+      .hero-stats{gap:20px;} .hero h1{font-size:36px;}
+      .comp-bar{justify-content:center;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ACCESSIBILITY SKIP LINK -->
+<a href="#detector" class="skip-nav">Skip to main content</a>
+
+<!--  ONBOARDING WIZARD  -->
+<div class="wizard-overlay" id="wizardOverlay" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
+  <div class="wizard-box">
+    <div class="wizard-head">
+      <div class="wiz-dots">
+        <div class="wiz-dot active" onclick="wizardGo(0)"></div>
+        <div class="wiz-dot" onclick="wizardGo(1)"></div>
+        <div class="wiz-dot" onclick="wizardGo(2)"></div>
+        <div class="wiz-dot" onclick="wizardGo(3)"></div>
+      </div>
+      <div class="wizard-title" id="wizardTitle">Welcome to PlantGuard AI 🌿</div>
+      <div class="wizard-sub" id="wizardSub">Let's walk you through your first crop disease diagnosis.</div>
+    </div>
+    <div class="wizard-body">
+      <div class="wiz-progress"><div class="wiz-progress-fill" id="wizProgress" style="width:25%"></div></div>
+      <div class="wiz-step active" id="wiz-0">
+        <div class="wiz-icon-row"><div class="wiz-big-icon">📷</div><div><div class="wiz-step-title">Step 1 — Take a Leaf Photo</div><div class="wiz-step-desc">A good photo gives better results.</div></div></div>
+        <div class="wiz-tips">
+          <div class="wiz-tip"><div class="wiz-tip-dot">1</div><span>Hold camera 20–30 cm from the leaf.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot">2</div><span>Use natural daylight, avoid flash or shadows.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot">3</div><span>Make affected areas clearly visible.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot">4</div><span>Save as JPG or PNG, under 10MB.</span></div>
+        </div>
+        <div class="wiz-nav"><button class="wiz-btn-back" onclick="closeWizard()">Skip tour</button><button class="wiz-btn-next" onclick="wizardNext()">Next →</button></div>
+      </div>
+      <div class="wiz-step" id="wiz-1">
+        <div class="wiz-icon-row"><div class="wiz-big-icon">⬆️</div><div><div class="wiz-step-title">Step 2 — Upload the Image</div><div class="wiz-step-desc">Click the zone or drag and drop your photo.</div></div></div>
+        <div class="wiz-tips">
+          <div class="wiz-tip"><div class="wiz-tip-dot">1</div><span>Click the green upload area on the home screen.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot">2</div><span>Or drag and drop the image directly onto it.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot">3</div><span>A preview of your image will appear immediately.</span></div>
+        </div>
+        <div class="wiz-nav"><button class="wiz-btn-back" onclick="wizardBack()">← Back</button><button class="wiz-btn-next" onclick="wizardNext()">Next →</button></div>
+      </div>
+      <div class="wiz-step" id="wiz-2">
+        <div class="wiz-icon-row"><div class="wiz-big-icon">🧠</div><div><div class="wiz-step-title">Step 3 — Read Your Result</div><div class="wiz-step-desc">The AI returns a full diagnosis in under 3 seconds.</div></div></div>
+        <div class="wiz-tips">
+          <div class="wiz-tip"><div class="wiz-tip-dot" style="background:#16a34a">✅</div><span><strong style="color:#16a34a">Green</strong> — your plant is healthy.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot" style="background:#d97706">⚠️</div><span><strong style="color:#d97706">Amber</strong> — a disease was detected.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot" style="background:#dc2626">🚨</div><span><strong style="color:#dc2626">Red</strong> — urgent action needed.</span></div>
+        </div>
+        <div class="wiz-nav"><button class="wiz-btn-back" onclick="wizardBack()">← Back</button><button class="wiz-btn-next" onclick="wizardNext()">Next →</button></div>
+      </div>
+      <div class="wiz-step" id="wiz-3">
+        <div class="wiz-icon-row"><div class="wiz-big-icon">🌱</div><div><div class="wiz-step-title">Step 4 — Follow the Advice</div><div class="wiz-step-desc">Every result includes numbered treatment steps.</div></div></div>
+        <div class="wiz-tips">
+          <div class="wiz-tip"><div class="wiz-tip-dot">1</div><span>Read the treatment steps carefully.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot">2</div><span>Share the result via WhatsApp with a farmer or agronomist.</span></div>
+          <div class="wiz-tip"><div class="wiz-tip-dot">3</div><span>Create a free account to save history and track crops over time.</span></div>
+        </div>
+        <div class="wiz-nav"><button class="wiz-btn-back" onclick="wizardBack()">← Back</button><button class="wiz-btn-next" onclick="closeWizard()" style="background:#0c2e1c">🚀 Start Diagnosing</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG DRAWER -->
+<div class="config-backdrop" id="configBackdrop" onclick="closeConfig()"></div>
+<div class="config-drawer" id="configDrawer" role="complementary" aria-label="AI Configuration">
+  <div class="config-head">
+    <span class="config-title">⚙️ AI Configuration</span>
+    <button class="config-x" onclick="closeConfig()" aria-label="Close">✕</button>
+  </div>
+  <div class="config-body">
+    <div class="config-sec">
+      <div class="config-sec-title">Model Thresholds</div>
+      <div class="config-row">
+        <div class="config-lbl">Confidence Threshold</div>
+        <div class="config-desc">Show warning if confidence is below this level</div>
+        <input type="range" class="config-slider" min="30" max="95" value="50" oninput="document.getElementById('confThreshVal').textContent=this.value+'%'" aria-label="Confidence threshold"/>
+        <div class="config-val" id="confThreshVal">50%</div>
+      </div>
+      <div class="config-row">
+        <div class="config-lbl">High Certainty Threshold</div>
+        <div class="config-desc">Flag results above this as "High confidence"</div>
+        <input type="range" class="config-slider" min="70" max="99" value="85" oninput="document.getElementById('highConfVal').textContent=this.value+'%'" aria-label="High confidence threshold"/>
+        <div class="config-val" id="highConfVal">85%</div>
+      </div>
+    </div>
+    <div class="config-sec">
+      <div class="config-sec-title">Display Preferences</div>
+      <div class="config-row">
+        <div class="config-lbl">Result Language</div>
+        <div class="config-desc">Language for treatment advice</div>
+        <select class="config-select" onchange="sdSetLang&&sdSetLang(this.value)" aria-label="Language">
+          <option value="en">🇬🇧 English</option>
+          <option value="rw">🇷🇼 Kinyarwanda</option>
+        </select>
+      </div>
+      <div class="config-row">
+        <div class="config-lbl">Confidence Display</div>
+        <select class="config-select" id="confDisplayMode" aria-label="Confidence display">
+          <option value="both">Percentage + Bar</option>
+          <option value="percentage">Percentage only</option>
+          <option value="bar">Bar only</option>
+        </select>
+      </div>
+    </div>
+    <div class="config-sec">
+      <div class="config-sec-title">Notifications</div>
+      <div class="cfg-toggle-row">
+        <div><div class="cfg-tog-lbl">Disease Alerts</div><div class="cfg-tog-sub">Toast when disease detected</div></div>
+        <button class="sd-toggle on" onclick="this.classList.toggle('on')" aria-label="Toggle disease alerts"></button>
+      </div>
+      <div class="cfg-toggle-row">
+        <div><div class="cfg-tog-lbl">Auto show Advice</div><div class="cfg-tog-sub">Expand treatment steps automatically</div></div>
+        <button class="sd-toggle on" onclick="this.classList.toggle('on')" aria-label="Toggle auto-show advice"></button>
+      </div>
+      <div class="cfg-toggle-row">
+        <div><div class="cfg-tog-lbl">Show Tour on Load</div><div class="cfg-tog-sub">Onboarding wizard for new users</div></div>
+        <button class="sd-toggle" id="wizardToggle" onclick="this.classList.toggle('on')" aria-label="Toggle wizard on load"></button>
+      </div>
+    </div>
+    <div class="config-sec">
+      <button onclick="resetConfig()" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--gb)';this.style.color='var(--gb)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">↩ Reset to Defaults</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL  -->
+<div class="modal-overlay" id="authModal" onclick="if(event.target===this)closeAuth()" role="dialog" aria-modal="true" aria-label="Sign in">
+  <div class="modal">
+    <button class="m-close" onclick="closeAuth()" aria-label="Close">✕</button>
+    <h2>🌿 PlantGuard AI</h2>
+    <p class="modal-sub">Sign in to save your diagnosis history</p>
+    <div class="m-tabs">
+      <button class="m-tab active" onclick="switchTab('login')" id="tabLogin">Sign In</button>
+      <button class="m-tab" onclick="switchTab('signup')" id="tabSignup">Create Account</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group"><label class="form-label" for="loginEmail">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="you@email.com" autocomplete="email"/></div>
+      <div class="form-group"><label class="form-label" for="loginPassword">Password</label><input type="password" class="form-input" id="loginPassword" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="form-error" id="loginError" role="alert"></div>
+      <button class="submit-btn" onclick="doLogin()" id="loginBtn">Sign In</button>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div class="form-group"><label class="form-label" for="signupName">Full Name</label><input type="text" class="form-input" id="signupName" placeholder="Carine Ahishakiye" autocomplete="name"/></div>
+      <div class="form-group"><label class="form-label" for="signupEmail">Email</label><input type="email" class="form-input" id="signupEmail" placeholder="you@email.com" autocomplete="email"/></div>
+      <div class="form-group"><label class="form-label" for="signupPassword">Password</label><input type="password" class="form-input" id="signupPassword" placeholder="Create a password" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignup()"/></div>
+      <div class="form-error" id="signupError" role="alert"></div>
+      <button class="submit-btn" onclick="doSignup()" id="signupBtn">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!--SHARE MODAL -->
+<div class="modal-overlay" id="shareModal" onclick="if(event.target===this)closeShareModal()" role="dialog" aria-modal="true" aria-label="Share result">
+  <div class="share-modal-box">
+    <button class="m-close" onclick="closeShareModal()" aria-label="Close">✕</button>
+    <h2 style="margin-bottom:5px">Share Result</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:18px">Share this plant diagnosis</p>
+    <div class="share-preview" id="sharePreview"></div>
+    <div class="share-grid">
+      <div class="share-opt" onclick="doShare('whatsapp')" tabindex="0" role="button"><div class="share-opt-icon">💬</div><div class="share-opt-lbl">WhatsApp</div><div class="share-opt-sub">Send to contacts</div></div>
+      <div class="share-opt" onclick="doShare('twitter')" tabindex="0" role="button"><div class="share-opt-icon">🐦</div><div class="share-opt-lbl">Twitter / X</div><div class="share-opt-sub">Post publicly</div></div>
+      <div class="share-opt" onclick="doShare('copy')" tabindex="0" role="button" id="copyModalOpt"><div class="share-opt-icon">📋</div><div class="share-opt-lbl" id="copyModalLbl">Copy Text</div><div class="share-opt-sub">Copy to clipboard</div></div>
+      <div class="share-opt" onclick="doShare('email')" tabindex="0" role="button"><div class="share-opt-icon">📧</div><div class="share-opt-lbl">Email</div><div class="share-opt-sub">Send via email</div></div>
+    </div>
+  </div>
+</div>
+
+<!--  SETTINGS MODAL  -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()" role="dialog" aria-modal="true" aria-label="Settings">
+  <div class="settings-box">
+    <button class="m-close" onclick="closeSettings()" aria-label="Close">✕</button>
+    <div class="settings-head">
+      <div class="settings-av" id="sAvatar">👤</div>
+      <div class="settings-uname" id="sName">Guest</div>
+      <div class="settings-uemail" id="sEmail">Sign in to save your scans</div>
+    </div>
+    <div class="settings-body">
+      <div id="sActivitySection" style="display:none">
+        <div class="settings-section">
+          <div class="settings-section-title">Your Activity</div>
+          <div class="settings-stats">
+            <div class="stat-box"><div class="stat-box-num" id="sTotal">0</div><div class="stat-box-lbl">Scans</div></div>
+            <div class="stat-box"><div class="stat-box-num" id="sHealthy">0</div><div class="stat-box-lbl">Healthy ✅</div></div>
+            <div class="stat-box"><div class="stat-box-num" id="sDiseased">0</div><div class="stat-box-lbl">Diseased ⚠️</div></div>
+          </div>
+        </div>
+      </div>
+      <div id="sGuestSection" style="display:none">
+        <div class="settings-section">
+          <div class="guest-box">
+            <div class="guest-box-icon">🌱</div>
+            <div class="guest-box-title">Sign in to unlock all features</div>
+            <div class="guest-box-sub">Save scan history, track your crops, and get personalised treatment plans.</div>
+            <button class="guest-signin-btn" onclick="closeSettings();openAuth()">Sign In / Create Account</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Appearance</div>
+        <div class="s-row">
+          <div class="s-row-left"><div class="s-row-icon">🌙</div><div><div class="s-row-lbl">Dark Mode</div><div class="s-row-sub">Switch light / dark theme</div></div></div>
+          <button class="stoggle off" id="sDarkToggle" onclick="sToggleDark(this)"></button>
+        </div>
+        <div class="s-row">
+          <div class="s-row-left"><div class="s-row-icon">🌍</div><div><div class="s-row-lbl">Language</div><div class="s-row-sub">English or Kinyarwanda</div></div></div>
+          <select class="s-select" id="sLangSelect" onchange="sChangeLang(this.value)"><option value="en">🇬🇧 English</option><option value="rw">🇷🇼 Kinyarwanda</option></select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">AI Preferences</div>
+        <div class="s-row">
+          <div class="s-row-left"><div class="s-row-icon">🎯</div><div><div class="s-row-lbl">Min. Confidence Threshold</div><div class="s-row-sub">Flag low-confidence results</div></div></div>
+          <div style="display:flex;align-items:center;gap:7px">
+            <input type="range" class="config-slider" style="width:80px" min="50" max="95" value="70" oninput="document.getElementById('sConfVal').textContent=this.value+'%'" aria-label="Confidence threshold"/>
+            <span style="font-size:11px;font-weight:700;color:var(--gb);min-width:28px" id="sConfVal">70%</span>
+          </div>
+        </div>
+        <div class="s-row">
+          <div class="s-row-left"><div class="s-row-icon">🔔</div><div><div class="s-row-lbl">Disease Alerts</div><div class="s-row-sub">Show warning banner for diseases</div></div></div>
+          <button class="stoggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+        </div>
+      </div>
+      <div id="sAccountSection" style="display:none">
+        <div class="settings-section">
+          <div class="settings-section-title">Account</div>
+          <div class="s-row"><div class="s-row-left"><div class="s-row-icon">📧</div><div><div class="s-row-lbl">Email</div><div class="s-row-sub" id="sEmailRow"></div></div></div></div>
+          <div class="s-row">
+            <div class="s-row-left"><div class="s-row-icon">🔑</div><div><div class="s-row-lbl">Session Token</div><div class="s-row-sub">JWT, expires in 24 hours</div></div></div>
+            <span style="font-size:9px;font-weight:700;background:var(--gp);color:var(--gm);padding:3px 7px;border-radius:999px">JWT</span>
+          </div>
+          <div class="s-row">
+            <div class="s-row-left"><div class="s-row-icon">📊</div><div><div class="s-row-lbl">Save Scan History</div><div class="s-row-sub">Save scans to your account</div></div></div>
+            <button class="stoggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+          </div>
+          <button class="danger-btn" onclick="closeSettings();doLogout()">🚪 Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST STACK ═══ -->
+<div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+
+<!-- ═══ NAV ═══ -->
+<nav id="mainNav" role="navigation" aria-label="Main navigation">
+  <a class="logo" onclick="goHome()" href="#" aria-label="PlantGuard AI home">
+    <div class="logo-dot"></div>PlantGuard AI
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#detector">Detect Disease</a></li>
+    <li><a href="#diseases">Diseases</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <div class="nav-ctrl">
+        <button onclick="openWizard()" class="nbtn" aria-label="Quick tour" title="Quick Tour">❓</button>
+    <button onclick="openConfig()" class="icon-btn" aria-label="AI Configuration" title="AI Configuration"><span class="gi">🎛️</span></button>
+    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle dark mode">🌙</button>
+    <button class="icon-btn" onclick="openSettings()" aria-label="Settings"><span class="gi">⚙️</span></button>
+    <div id="authNavArea">
+      <button class="nbtn primary" onclick="openAuth()">Sign In</button>
+    </div>
+  </div>
+</nav>
+
+<!--LANDING PAGE -->
+<div id="pgLanding" class="pg active">
+  <section class="hero" aria-labelledby="heroH1">
+    <div class="hero-bg c1"></div><div class="hero-bg c2"></div>
+    <div class="hero-content">
+      <div class="hero-badge">AI Powered Plant Health</div>
+      <h1 id="heroH1">Detect Crop<br/>Disease <span>Instantly</span></h1>
+      <p class="hero-desc">A farmer shouldn't need a laboratory to know what's destroying their crops. Snap a photo of any leaf. PlantGuard identifies the disease instantly.</p>
+      <div class="hero-stats">
+        <div><div class="stat-num">94%</div><div class="stat-lbl">Accuracy</div></div>
+        <div><div class="stat-num">38</div><div class="stat-lbl">Diseases</div></div>
+        <div><div class="stat-num">54K+</div><div class="stat-lbl">Images Trained</div></div>
+      </div>
+      <div class="hero-btns">
+        <a href="#detector" class="cta-btn">Analyse Your Plant <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+          <button onclick="openWizard()" class="ghost-btn">Quick Tour ❓</button>
+      </div>
+    </div>
+    <div class="hero-img-side" aria-hidden="true">
+      <div class="hero-img-wrap">
+        <div class="hero-img-frame"><img src="images/hero-plant.jpg" alt="Plant leaf"/></div>
+        <div class="float-card fc2"><div style="font-size:10px;color:#888;margin-bottom:3px">Model Confidence</div><div class="fc-acc">94.7%</div></div>
+        <div class="float-card fc1"><div class="fc-dot"></div><div><div style="font-size:10px;color:#888;margin-bottom:2px">Detection Result</div><div style="color:#0d3320;font-weight:600">Potato: Early Blight ⚠️</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how-it-works" aria-labelledby="howH2">
+    <div class="sec-label">Process</div>
+    <h2 id="howH2" class="sec-title fade-up">How It Works</h2>
+    <p class="sec-sub fade-up">Three steps from photo to diagnosis, powered by MobileNetV2 Transfer Learning for real-time inference.</p>
+    <div class="steps-grid">
+      <div class="step-card fade-up"><div class="step-num">01</div><div class="step-icon">📷</div><h3>Upload a Leaf Photo</h3><p>Take a clear photo of the plant leaf showing any affected areas. Supports JPG or PNG. The clearer the photo, the more precise the result.</p></div>
+      <div class="step-card fade-up" style="transition-delay:.1s"><div class="step-num">02</div><div class="step-icon">🧠</div><h3>AI Analyses the Image</h3><p>Built with MobileNetV2, trained on 54,000+ images from the PlantVillage dataset. Scans against 38 disease categories for an accurate, research-backed diagnosis.</p></div>
+      <div class="step-card fade-up" style="transition-delay:.2s"><div class="step-num">03</div><div class="step-icon">📊</div><h3>Get Instant Results</h3><p>Receive a complete diagnosis with plant species, detected condition, confidence score, and tailored treatment advice — all in under 3 seconds.</p></div>
+    </div>
+  </section>
+
+  <!-- DETECTOR SECTION -->
+  <section class="det-section" id="detector" aria-labelledby="detH2">
+    <div class="det-grid">
+      <div class="det-left">
+        <div class="sec-label" style="color:var(--gl)">Live Demo</div>
+        <h2 id="detH2" class="sec-title">Try It Right Now</h2>
+        <p class="sec-sub">Upload any leaf image and get an instant AI diagnosis. Detects diseases across multiple crop varieties grown across Africa and beyond.</p>
+        <div class="disease-tags" id="tagContainer"></div>
+      </div>
+      <div class="upload-card" role="region" aria-label="Plant disease detector">
+        <h3>Plant Disease Detector</h3>
+        <p class="sub">Supports JPG, PNG · max 10MB</p>
+        <!-- Workflow stepper -->
+        <div class="wf-stepper" aria-label="Analysis steps">
+          <div class="wf-step active" id="wfS1"><div class="wf-circle">1</div><span class="wf-lbl">Upload</span></div>
+          <div class="wf-conn" id="wfC1"></div>
+          <div class="wf-step" id="wfS2"><div class="wf-circle">2</div><span class="wf-lbl">Analyse</span></div>
+          <div class="wf-conn" id="wfC2"></div>
+          <div class="wf-step" id="wfS3"><div class="wf-circle">3</div><span class="wf-lbl">Result</span></div>
+        </div>
+        <!-- Compliance bar -->
+        <div class="comp-bar">
+          <span class="comp-badge">🔒 GDPR</span>
+          <span class="comp-badge">🇷🇼 Local-Only</span>
+          <span class="comp-lbl">Images never stored · JWT secured · No ads</span>
+        </div>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" role="button" tabindex="0" aria-label="Click or drag to upload leaf image" onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('fileInput').click()">
+          <div class="upload-icon">🍃</div>
+          <p><strong>Click to upload</strong> or drag and drop a leaf photo here</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)" aria-label="Upload leaf image"/>
+        <div id="previewWrap">
+          <img id="previewImg" alt="Preview of uploaded leaf"/>
+          <div class="prev-overlay"><span class="prev-name" id="previewName"></span><button class="prev-reset" onclick="resetUpload()">✕ Change</button></div>
+        </div>
+        <button class="analyse-btn" id="analyseBtn" onclick="predict()" disabled aria-label="Analyse plant">
+          <span id="btnText">Analyse Plant 🔍</span>
+        </button>
+        <div class="loading-state" id="loadingState" aria-live="polite"><div class="ring"></div><p>Analysing your plant leaf...</p></div>
+        <div class="result-box" id="resultBox" role="status" aria-live="polite">
+          <div class="result-head" id="resultHeader">
+            <div class="result-icon" id="resultIcon"></div>
+            <div><div class="result-cond" id="resultCondition"></div><div class="result-plant" id="resultPlant"></div></div>
+          </div>
+          <div class="result-body">
+            <div class="conf-row"><span>Confidence</span><span id="confPercent"></span></div>
+            <div class="conf-track"><div class="conf-fill" id="confFill"></div></div>
+            <div class="result-meta" id="resultRaw"></div>
+          </div>
+        </div>
+        <div class="advice-box" id="adviceBox"><div class="advice-title" id="adviceTitle"></div><div id="adviceText"></div></div>
+        <div class="pred-ms" id="predTime" style="display:none">⚡ Analysed in <strong id="predTimeVal"></strong>ms</div>
+        <div class="share-row" id="shareRow" style="display:none">
+          <button class="share-btn" onclick="copyResult()" id="copyBtn">📋 Copy</button>
+          <button class="share-btn wa" onclick="openShareModal()">💬 Share</button>
+          <button class="share-btn" onclick="printResult()">📄 PDF</button>
+        </div>
+        <div class="hist-panel" id="historyPanel" aria-live="polite">
+          <div class="hist-head"><span>Recent Analyses</span><span id="historyCount" style="font-weight:400;color:var(--muted)"></span></div>
+          <div id="historyList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERFORMANCE DASHBOARD -->
+  <section class="perf-section" id="model-performance" aria-labelledby="perfH2">
+    <div class="sec-label">Analytics</div>
+    <h2 id="perfH2" class="sec-title fade-up">Model Performance Dashboard</h2>
+    <p class="sec-sub fade-up">Live metrics from the MobileNetV2 model, updating dynamically with your session data.</p>
+    <div class="perf-grid" id="perfGrid">
+      <div class="perf-card">
+        <div class="perf-card-title">Detection Accuracy by Crop</div>
+        <div id="accBarChart"></div>
+      </div>
+      <div class="perf-card" style="display:flex;flex-direction:column;align-items:center">
+        <div class="perf-card-title" style="width:100%">Healthy vs Diseased Split</div>
+        <div class="donut-wrap">
+          <div class="donut-rel">
+            <svg class="donut-svg" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Healthy vs diseased chart">
+              <circle class="donut-track" cx="75" cy="75" r="60"/>
+              <circle class="donut-fill-h" cx="75" cy="75" r="60"/>
+              <circle class="donut-fill-d" cx="75" cy="75" r="60"/>
+            </svg>
+            <div class="donut-center"><div class="donut-val" id="donutVal">—</div><div class="donut-sub">scans</div></div>
+          </div>
+          <div class="donut-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div>Healthy</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Diseased</div>
+          </div>
+          <div id="donutNote" style="font-size:10px;color:var(--muted);margin-top:9px;text-align:center">Run a scan to see live data</div>
+        </div>
+      </div>
+      <div class="perf-card">
+        <div class="perf-card-title">Validation Accuracy</div>
+        <div class="spark-big">94%</div>
+        <div class="spark-trend">↑ Trained on 54,305 images · 5 epochs</div>
+        <svg width="100%" height="58" viewBox="0 0 200 58" style="margin-top:10px;overflow:visible" role="img" aria-label="Accuracy training curve">
+          <defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16a34a" stop-opacity=".28"/><stop offset="100%" stop-color="#16a34a" stop-opacity="0"/></linearGradient></defs>
+          <path id="sparkArea" fill="url(#sparkGrad)"/>
+          <path id="sparkLine" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle id="sparkDot" r="3.5" fill="#16a34a"/>
+        </svg>
+        <div style="margin-top:10px">
+          <div class="perf-card-title" style="margin-bottom:7px">Confidence Heatmap (last 30 scans)</div>
+          <div class="heat-row" id="heatRow"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISEASES SECTION -->
+  <section class="diseases-section" id="diseases" aria-labelledby="disH2">
+    <div class="sec-label">Coverage</div>
+    <h2 id="disH2" class="sec-title fade-up">38 Detectable Conditions</h2>
+    <p class="sec-sub fade-up">Pathologies across 14 plant species — from bacterial blights to viral infections — ensuring reliable detection for a wide variety of crops.</p>
+    <div class="search-wrap">
+      <input type="text" id="diseaseSearch" class="search-input" placeholder="Search diseases or plants..." oninput="filterDiseases(this.value)" aria-label="Search diseases"/>
+      <span class="search-ico">🔍</span><span class="search-cnt" id="searchCount"></span>
+    </div>
+    <div class="disease-grid" id="diseasesGrid">
+      <div class="sk"></div><div class="sk"></div><div class="sk"></div>
+      <div class="sk"></div><div class="sk"></div><div class="sk"></div>
+      <div class="sk"></div><div class="sk"></div><div class="sk"></div>
+    </div>
+    <div id="noResults" style="display:none;text-align:center;padding:28px;color:var(--muted);font-size:13px" aria-live="polite">No diseases found.</div>
+    <button class="show-more" id="showMoreBtn" onclick="toggleDiseases()">Show all diseases</button>
+  </section>
+
+  <!-- ABOUT SECTION -->
+  <section class="about-section" id="about" aria-labelledby="aboutH2">
+    <div class="about-img"><img src="images/about-tech.jpeg" alt="Scientists examining plant leaves"/></div>
+    <div>
+      <span class="about-accent">Built with Deep Learning</span>
+      <h2 id="aboutH2" class="sec-title fade-up">The Technology Behind PlantGuard</h2>
+      <p class="sec-sub fade-up" style="margin-bottom:18px">PlantGuard uses MobileNetV2 Transfer Learning fine-tuned on 54,000+ leaf images across 38 disease categories from the PlantVillage dataset.</p>
+      <p style="font-size:14px;color:var(--muted);line-height:1.74;font-weight:300;margin-bottom:24px">The model reached 94% validation accuracy in just 5 training epochs, engineered to run on standard hardware without expensive GPUs. A FastAPI backend serves predictions in real time.</p>
+      <div class="tech-stack">
+        <span class="tech-pill">Python</span><span class="tech-pill">TensorFlow</span><span class="tech-pill">MobileNetV2</span>
+        <span class="tech-pill">FastAPI</span><span class="tech-pill">Keras</span><span class="tech-pill">Pillow</span>
+      </div>
+    </div>
+  </section>
+
+  <footer role="contentinfo">
+    <div class="logo"><div class="logo-dot"></div>PlantGuard AI</div>
+    <p class="footer-text">Built by <strong style="color:rgba(255,255,255,.7)">Carine Ahishakiye</strong> · African Leadership University, Rwanda</p>
+    <div class="footer-links">
+      <a href="/privacy" target="_blank">Privacy</a>
+      <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener">API Docs</a>
+    </div>
+  </footer>
+</div>
+
+<div id="pgSidebar">
+  <!-- Sidebar -->
+  <aside class="sd-sidebar" id="sdSidebar" role="navigation" aria-label="PlantGuard navigation">
+    <div class="sd-logo-area">
+      <div class="sd-logo" onclick="sdGoTo('home')" role="button" tabindex="0">
+        <div class="sd-logo-icon">🌿</div>
+        <div><div>PlantGuard</div><div class="sd-logo-sub">AI Platform</div></div>
+      </div>
+    </div>
+    <nav class="sd-nav">
+      <div class="sd-sec-lbl">Main</div>
+      <button class="sd-nav-item active" onclick="sdGoTo('home')"><span class="sd-nav-icon">🏠</span> Dashboard</button>
+      <button class="sd-nav-item" onclick="sdGoTo('library')"><span class="sd-nav-icon">🧬</span> Disease Library <span class="sd-nav-badge" id="sdDiseaseBadge">38</span></button>
+      <div class="sd-sec-lbl">Account</div>
+      <button class="sd-nav-item" onclick="sdGoTo('profile')"><span class="sd-nav-icon">👤</span> Profile</button>
+      <button class="sd-nav-item" onclick="sdGoTo('settings')"><span class="sd-nav-icon">⚙️</span> Settings</button>
+      <button class="sd-nav-item" onclick="sdGoTo('privacy')"><span class="sd-nav-icon">🔒</span> Privacy</button>
+      <button class="sd-nav-item" onclick="sdGoTo('compliance')"><span class="sd-nav-icon">🛡️</span> Compliance</button>
+      <div style="flex:1"></div>
+      <div class="sd-sec-lbl">Navigation</div>
+      <button class="sd-nav-item" onclick="window.open('http://127.0.0.1:8000/docs','_blank')"><span class="sd-nav-icon">📡</span> API Docs</button>
+      <button class="sd-nav-item" onclick="goBackHome()"><span class="sd-nav-icon">←</span> Back to Home</button>
+    </nav>
+    <div class="sd-user-area">
+      <div class="sd-user-row" onclick="sdGoTo('profile')" role="button" tabindex="0">
+        <div class="sd-user-av" id="sdUserAv">?</div>
+        <div><div class="sd-user-name" id="sdUserName">Guest</div><div class="sd-user-email" id="sdUserEmail">Not signed in</div></div>
+        <div class="sd-chevron">›</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="sd-main">
+    <div class="sd-topbar">
+      <button onclick="document.getElementById('sdSidebar').classList.toggle('open')" style="display:none;background:none;border:none;font-size:19px;cursor:pointer;color:var(--ink)" id="sdMobileToggle" aria-label="Toggle sidebar">☰</button>
+      <div class="sd-topbar-title" id="sdTopbarTitle">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <button class="sd-icon-btn" onclick="toggleTheme()" id="sdThemeBtn" aria-label="Toggle theme">🌙</button>
+        <button class="sd-icon-btn" onclick="toggleLang()" style="width:auto;padding:0 9px;font-size:10px;font-weight:700" id="sdLangBtn" aria-label="Toggle language">🇷🇼 KIN</button>
+        <button class="sd-icon-btn" onclick="openConfig()" title="AI Configuration" aria-label="AI Configuration">🎛️</button>
+        <button class="sd-icon-btn" onclick="openWizard()" title="Help tour" aria-label="Help tour">❓</button>
+        <button class="sd-icon-btn" onclick="openSettings()" aria-label="Settings">⚙️</button>
+        <div id="sdAuthArea">
+          <button onclick="openAuth()" class="sd-icon-btn" style="width:auto;padding:0 12px;font-size:11px;font-weight:700;background:var(--gb);border-color:var(--gb);color:white" aria-label="Sign in">Sign In</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live bar -->
+    <div class="sd-live-bar" id="sdLiveBar" aria-live="polite">
+      <div class="live-dot"></div><span style="font-weight:600">Session Active</span>
+      <span class="live-sep">·</span>
+      <span>Scans this session: <strong id="sessionScanCount">0</strong></span>
+      <span class="live-sep">·</span>
+      <span>Last: <strong id="sessionLastResult" style="color:var(--gb)">—</strong></span>
+    </div>
+
+    <div class="sd-content">
+
+      <!-- HOME PAGE -->
+      <div class="sd-page active" id="sd-home">
+        <div style="margin-bottom:22px">
+          <h1 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--ink);margin-bottom:3px" id="sdGreeting">Good morning 👋</h1>
+          <p style="font-size:12px;color:var(--muted)">Overview of your PlantGuard AI activity</p>
+        </div>
+        <div class="sd-stats-row">
+          <div class="sd-stat-card"><div class="sd-stat-top"><div class="sd-stat-icon g">🔍</div><span class="sd-trend" id="sdStatA">0</span></div><div class="sd-stat-val" id="sdStatAV">0</div><div class="sd-stat-lbl">Total Analyses</div></div>
+          <div class="sd-stat-card"><div class="sd-stat-top"><div class="sd-stat-icon a">⚠️</div><span class="sd-trend" id="sdStatD">0</span></div><div class="sd-stat-val" id="sdStatDV">0</div><div class="sd-stat-lbl">Diseases Found</div></div>
+          <div class="sd-stat-card"><div class="sd-stat-top"><div class="sd-stat-icon g">✅</div><span class="sd-trend">94%</span></div><div class="sd-stat-val">94%</div><div class="sd-stat-lbl">Accuracy</div></div>
+          <div class="sd-stat-card"><div class="sd-stat-top"><div class="sd-stat-icon b">⚡</div><span class="sd-trend">Fast</span></div><div class="sd-stat-val" id="sdStatSpeed">~1s</div><div class="sd-stat-lbl">Avg Speed</div></div>
+        </div>
+        <div class="sd-grid">
+          <div>
+            <div class="sd-detector-card">
+              <div class="sd-card-header"><div><div class="sd-card-title">Live Disease Detector</div><div class="sd-card-sub">Upload a leaf for instant diagnosis</div></div><div class="sd-ai-badge"><div class="sd-ai-dot"></div>AI Live</div></div>
+              <div class="sd-card-body">
+                <div class="sd-upload-zone" id="sdUploadZone" onclick="document.getElementById('sdFileInput').click()" ondragover="sdDrag(event,true)" ondragleave="sdDrag(event,false)" ondrop="sdDrop(event)" role="button" tabindex="0" aria-label="Upload leaf image" onkeydown="if(event.key==='Enter')document.getElementById('sdFileInput').click()">
+                  <div class="sd-upload-icon">🍃</div>
+                  <p><strong>Click to upload</strong> or drag and drop<br/>JPG, PNG · max 10MB</p>
+                </div>
+                <input type="file" id="sdFileInput" accept="image/*" onchange="sdFile(event)" style="display:none"/>
+                <div id="sdPreviewWrap" style="display:none;margin-bottom:12px;border-radius:11px;overflow:hidden;position:relative">
+                  <img id="sdPreviewImg" style="width:100%;height:150px;object-fit:cover;display:block" alt="Preview"/>
+                  <div class="prev-overlay"><span class="prev-name" id="sdPreviewName"></span><button class="prev-reset" onclick="sdReset()">Change</button></div>
+                </div>
+                <button class="sd-analyse-btn" id="sdAnalyseBtn" onclick="sdPredict()" disabled aria-label="Analyse plant">🔬 Analyse Plant</button>
+                <div style="display:none;text-align:center;padding:14px 0" id="sdLoading" aria-live="polite"><div class="ring" style="width:34px;height:34px;border-width:2px;margin-bottom:7px"></div><p style="font-size:11px;color:var(--muted)">Analysing...</p></div>
+                <div class="sd-result-box" id="sdResult" role="status" aria-live="polite">
+                  <div class="sd-result-head" id="sdResultHeader">
+                    <div style="font-size:21px" id="sdResultEmoji"></div>
+                    <div style="flex:1;margin-left:9px"><div style="font-size:13px;font-weight:700;color:var(--ink)" id="sdResultCond"></div><div style="font-size:10px;color:var(--muted);margin-top:1px" id="sdResultPlant"></div></div>
+                  </div>
+                  <div class="sd-result-body">
+                    <div class="sd-conf-row"><span>Confidence</span><span id="sdConfPct"></span></div>
+                    <div class="sd-conf-track"><div class="sd-conf-fill" id="sdConfFill"></div></div>
+                    <div class="sd-meta-row"><span class="sd-chip" id="sdPredTime"></span><span class="sd-chip" id="sdRawClass"></span></div>
+                    <div class="sd-why" onclick="sdShowWhy()" role="button" tabindex="0">🔍 Why this result?</div>
+                    <div class="sd-fb-row">
+                      <span>Accurate?</span>
+                      <button class="sd-fb-btn" id="sdFbUp" onclick="sdFeedback('up')" aria-label="Mark as accurate">👍</button>
+                      <button class="sd-fb-btn" id="sdFbDown" onclick="sdFeedback('down')" aria-label="Mark as inaccurate">👎</button>
+                      <span id="sdFbThanks" style="display:none;font-size:10px;color:var(--gb)">Thanks!</span>
+                    </div>
+                    <div class="sd-share-row">
+                      <button class="sd-share-btn" onclick="sdCopy()" id="sdCopyBtn">📋 Copy</button>
+                      <button class="sd-share-btn wa" onclick="sdShareWA()">💬 WhatsApp</button>
+                      <button class="sd-share-btn" onclick="sdReset()">🔄 Retry</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="sd-advice-box" id="sdAdvice"><div class="sd-advice-title" id="sdAdviceTitle"></div><div id="sdAdviceText"></div></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="sd-qa-row">
+              <div class="sd-qa-card" onclick="sdGoTo('library')"><div class="sd-qa-icon">🧬</div><div class="sd-qa-label">Disease List</div></div>
+              <div class="sd-qa-card" onclick="sdGoTo('compliance')"><div class="sd-qa-icon">🛡️</div><div class="sd-qa-label">Compliance</div></div>
+              <div class="sd-qa-card" onclick="sdGoTo('settings')"><div class="sd-qa-icon">⚙️</div><div class="sd-qa-label">Settings</div></div>
+              <div class="sd-qa-card" onclick="sdGoTo('privacy')"><div class="sd-qa-icon">🔒</div><div class="sd-qa-label">Privacy</div></div>
+            </div>
+            <div class="sd-history-card">
+              <div class="sd-card-header"><div><div class="sd-card-title">Recent Analyses</div><div class="sd-card-sub" id="sdHistorySub">Sign in to see history</div></div></div>
+              <div id="sdHistoryList"><div style="padding:20px;text-align:center;font-size:11px;color:var(--muted)">No analyses yet</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISEASE LIBRARY -->
+      <div class="sd-page" id="sd-library">
+        <div style="margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">
+          <div><h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--ink)">🧬 Disease Library</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">All conditions the model can detect</p></div>
+          <span style="background:var(--gp);color:var(--gm);padding:3px 11px;border-radius:999px;font-size:11px;font-weight:600" id="sdLibCount">Loading...</span>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px">
+          <div style="position:relative;max-width:320px;margin-bottom:14px">
+            <input type="text" style="width:100%;padding:8px 30px 8px 13px;border:1.5px solid var(--border);border-radius:999px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--ink);outline:none" placeholder="Search..." oninput="sdFilterDiseases(this.value)" aria-label="Search diseases"/>
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none">🔍</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(142px,1fr));gap:8px;max-height:420px;overflow:hidden;transition:max-height .5s" id="sdLibGrid">
+            <div class="sk" style="height:48px"></div><div class="sk" style="height:48px"></div><div class="sk" style="height:48px"></div>
+          </div>
+          <div id="sdLibNoResults" style="display:none;text-align:center;padding:20px;font-size:12px;color:var(--muted)">No diseases found.</div>
+          <button class="show-more" id="sdLibShowMore" onclick="sdToggleLib()" style="margin-top:18px">Show all diseases</button>
+        </div>
+      </div>
+
+      <!-- PROFILE PAGE -->
+      <div class="sd-page" id="sd-profile">
+        <div style="margin-bottom:22px"><h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--ink)">👤 Profile</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">Your account and activity overview</p></div>
+        <div style="max-width:580px">
+          <div id="sdProfileGuest">
+            <div style="background:linear-gradient(135deg,#0c2e1c,#166534);border-radius:18px;padding:28px;color:white;margin-bottom:18px;text-align:center;position:relative;overflow:hidden">
+              <div style="position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.05);top:-50px;right:-50px"></div>
+              <div style="font-size:48px;margin-bottom:10px">🌱</div>
+              <h3 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:7px">Browsing as Guest</h3>
+              <p style="font-size:12px;opacity:.72;margin-bottom:18px;line-height:1.6">Create a free account to save diagnoses, track crops, and access results from anywhere.</p>
+              <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap">
+                <button onclick="openAuth('signup')" style="padding:10px 22px;background:white;color:#0c2e1c;border:none;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Create Free Account</button>
+                <button onclick="openAuth('login')" style="padding:10px 22px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:white;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Sign In</button>
+              </div>
+            </div>
+          </div>
+          <div id="sdProfileUser" style="display:none">
+            <div class="sd-profile-banner">
+              <div class="sd-profile-av" id="sdProfileAv">?</div>
+              <div><div class="sd-profile-name" id="sdProfileName">User</div><div class="sd-profile-email" id="sdProfileEmail">email</div><div class="sd-profile-status">✅ Active Account</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:18px">
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#0c2e1c" id="sdProfileTotal">0</div><div style="font-size:10px;color:#78716c;margin-top:3px">Total Scans</div></div>
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#16a34a" id="sdProfileHealthy">0</div><div style="font-size:10px;color:#78716c;margin-top:3px">Healthy ✅</div></div>
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#d97706" id="sdProfileDiseased">0</div><div style="font-size:10px;color:#78716c;margin-top:3px">Diseased ⚠️</div></div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+              <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:12px;font-weight:600">Dark Mode</div><div style="font-size:10px;color:var(--muted)">Switch theme</div></div><button class="sd-toggle" id="sdProfileDarkToggle" onclick="sdDarkToggle()"></button></div>
+              <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:12px;font-weight:600">Language</div></div><select class="sd-select" onchange="sdSetLang(this.value)" id="sdProfileLang"><option value="en">🇬🇧 English</option><option value="rw">🇷🇼 Kinyarwanda</option></select></div>
+              <div style="padding:14px 20px"><button onclick="doLogout()" style="width:100%;padding:10px;border:1.5px solid #fecaca;border-radius:9px;background:none;color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">🚪 Sign Out</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS PAGE -->
+      <div class="sd-page" id="sd-settings">
+        <div style="margin-bottom:18px"><h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--ink)">⚙️ Settings</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">Customise your PlantGuard AI experience</p></div>
+        <div class="sd-settings-layout">
+          <div class="sd-settings-nav">
+            <div class="sd-settings-nav-item active" onclick="sdSwitchSettings('appearance',this)">🎨 Appearance</div>
+            <div class="sd-settings-nav-item" onclick="sdSwitchSettings('account',this)">👤 Account</div>
+            <div class="sd-settings-nav-item" onclick="sdSwitchSettings('model',this)">🧠 AI Model</div>
+            <div class="sd-settings-nav-item" onclick="sdSwitchSettings('danger',this)">⚠️ Danger Zone</div>
+          </div>
+          <div class="sd-settings-content">
+            <div id="sds-appearance">
+              <div class="sd-settings-card">
+                <div class="sd-settings-head"><div class="sd-settings-title">Appearance</div><div class="sd-settings-sub">Customise how PlantGuard looks</div></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Dark Mode</div><div class="sd-settings-desc">Switch to dark theme</div></div><button class="sd-toggle" id="sdDarkToggle" onclick="sdDarkToggle()"></button></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Language</div><div class="sd-settings-desc">English or Kinyarwanda</div></div><select class="sd-select" id="sdLangSelect" onchange="sdSetLang(this.value)"><option value="en">🇬🇧 English</option><option value="rw">🇷🇼 Kinyarwanda</option></select></div>
+              </div>
+            </div>
+            <div id="sds-account" style="display:none">
+              <div class="sd-settings-card">
+                <div class="sd-settings-head"><div class="sd-settings-title">Account</div><div class="sd-settings-sub">Your profile information</div></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Name</div><div class="sd-settings-desc" id="sdSettingsName">Not signed in</div></div></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Email</div><div class="sd-settings-desc" id="sdSettingsEmail">Not signed in</div></div></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Status</div></div><span class="sd-tag g" id="sdSettingsStatus">Guest</span></div>
+              </div>
+            </div>
+            <div id="sds-model" style="display:none">
+              <div class="sd-settings-card">
+                <div class="sd-settings-head"><div class="sd-settings-title">AI Model</div><div class="sd-settings-sub">Model powering PlantGuard</div></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Model</div><div class="sd-settings-desc">MobileNetV2 Transfer Learning</div></div><span class="sd-tag g">v1.0</span></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Accuracy</div><div class="sd-settings-desc">94% on validation set</div></div><span class="sd-tag g">94%</span></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Training Images</div><div class="sd-settings-desc">PlantVillage dataset</div></div><span class="sd-tag g">54,305</span></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Disease Classes</div></div><span class="sd-tag g">38 classes</span></div>
+              </div>
+            </div>
+            <div id="sds-danger" style="display:none">
+              <div class="sd-settings-card" style="border-color:#d94f3d">
+                <div class="sd-settings-head" style="background:#fdecea"><div class="sd-settings-title" style="color:#d94f3d">Danger Zone</div><div class="sd-settings-sub">Cannot be undone</div></div>
+                <div class="sd-settings-row"><div><div class="sd-settings-lbl">Sign Out</div><div class="sd-settings-desc">Sign out of your account</div></div><button class="sd-danger-btn" onclick="doLogout()">Sign Out</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIVACY PAGE -->
+      <div class="sd-page" id="sd-privacy">
+        <div style="margin-bottom:18px"><h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--ink)">🔒 Privacy & Data Policy</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">Last updated March 2026</p></div>
+        <div style="max-width:680px">
+          <div class="sd-priv-hero"><h2>Your data is safe with PlantGuard</h2><p>Built with privacy-first principles. Images are never stored. Passwords are encrypted. You are always in control.</p></div>
+          <div class="sd-priv-card"><div class="sd-priv-head">📋 What data is collected?</div><div class="sd-priv-body"><table class="sd-data-table"><thead><tr><th>Data</th><th>Collected?</th><th>Stored?</th><th>Shared?</th></tr></thead><tbody><tr><td>Leaf images</td><td><span class="sd-ptag y">Processed</span></td><td><span class="sd-ptag n">Never</span></td><td><span class="sd-ptag n">Never</span></td></tr><tr><td>Email address</td><td><span class="sd-ptag y">Yes</span></td><td><span class="sd-ptag e">Encrypted</span></td><td><span class="sd-ptag n">Never</span></td></tr><tr><td>Password</td><td><span class="sd-ptag y">Yes</span></td><td><span class="sd-ptag e">Hashed</span></td><td><span class="sd-ptag n">Never</span></td></tr><tr><td>Prediction results</td><td><span class="sd-ptag y">Yes</span></td><td><span class="sd-ptag y">Your account</span></td><td><span class="sd-ptag n">Never</span></td></tr><tr><td>Device/browser data</td><td><span class="sd-ptag n">Never</span></td><td><span class="sd-ptag n">Never</span></td><td><span class="sd-ptag n">Never</span></td></tr></tbody></table></div></div>
+          <div class="sd-priv-card"><div class="sd-priv-head">🔐 How we protect your data</div><div class="sd-priv-body"><ul><li><strong>Images are never stored.</strong> Processed in memory and immediately discarded.</li><li><strong>Passwords are hashed</strong> using bcrypt.</li><li><strong>JWT tokens</strong> expire after 24 hours.</li><li><strong>No third-party cloud services.</strong> All data stays in local SQLite.</li><li><strong>No advertising.</strong> Your data is never sold.</li></ul></div></div>
+          <div class="sd-priv-card"><div class="sd-priv-head">🏫 About this project</div><div class="sd-priv-body">PlantGuard AI is an academic portfolio project built by <strong>Carine Ahishakiye</strong> Kigali, Rwanda. BSc Software Engineering.</div></div>
+        </div>
+      </div>
+
+      <!-- COMPLIANCE PAGE -->
+      <div class="sd-page" id="sd-compliance">
+        <div style="margin-bottom:18px"><h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--ink)">🛡️ Compliance & Security</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">Data handling, audit logs, and regulatory compliance</p></div>
+        <div style="max-width:680px">
+          <div class="comp-banner">
+            <span class="comp-gdpr">GDPR</span><span class="comp-local">Local-Only</span>
+            <div class="comp-text"><strong>Data stays on your device.</strong> Images processed in-memory and never stored. Personal data encrypted at rest.</div>
+          </div>
+          <div style="margin-bottom:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:13px;font-weight:700;color:var(--ink)">Activity Audit Log</div>
+              <button onclick="clearAuditLog()" style="font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif" onmouseover="this.style.color='var(--gb)'" onmouseout="this.style.color='var(--muted)'">Clear log</button>
+            </div>
+            <div class="audit-log-wrap" role="log" aria-live="polite">
+              <div class="audit-log-head"><span>Action</span><span>Time</span></div>
+              <div id="auditLogBody"><div style="padding:20px;text-align:center;font-size:11px;color:var(--muted)">No activity recorded yet.</div></div>
+            </div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--ink)">Your Data Rights</div>
+            <div style="padding:16px 18px;font-size:11px;color:var(--muted);line-height:1.9">
+              Under GDPR and Rwanda's Law No. 058/2021 on Data Protection, you have the right to:
+              <ul style="padding-left:14px;margin-top:7px"><li>Access all data we hold about you</li><li>Request deletion of your account and scan history</li><li>Object to processing at any time</li><li>Export your data in a portable format</li></ul>
+              <div style="margin-top:11px;display:flex;gap:7px;flex-wrap:wrap">
+                <button onclick="exportUserData()" style="padding:7px 14px;background:var(--gp);border:1px solid rgba(22,163,74,.28);border-radius:7px;font-size:11px;font-weight:600;color:var(--gb);cursor:pointer;font-family:'DM Sans',sans-serif">📥 Export My Data</button>
+                <button onclick="deleteUserData()" style="padding:7px 14px;background:#fdecea;border:1px solid #fca5a5;border-radius:7px;font-size:11px;font-weight:600;color:#dc2626;cursor:pointer;font-family:'DM Sans',sans-serif">🗑️ Delete All My Data</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">↑</button>
+
+<script>
+const API = window.location.hostname === '127.0.0.1' 
+  ? 'http://127.0.0.1:8000' 
+  : '';
+let selectedFile=null, sdSelectedFile=null;
+let allDiseases=[], diseasesExpanded=false, sdLibExpanded=false;
+let currentLang='en', currentTheme='light', currentUser=null, lastResult=null;
+let sessionScans=0;
+let auditEntries = JSON.parse(localStorage.getItem('pg_audit')||'[]');
+
+/* PAGE MANAGEMENT  */
+function showPage(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('pgSidebar').style.display='none';
+  document.getElementById('mainNav').style.display='flex';
+  window.scrollTo(0,0);
+}
+function showSidebar(){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pgSidebar').style.display='flex';
+  document.getElementById('mainNav').style.display='none';
+  document.querySelectorAll('.sd-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sd-home').classList.add('active');
+  document.querySelectorAll('.sd-nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector('.sd-nav-item').classList.add('active');
+  window.scrollTo(0,0);
+}
+function goHome(){ showPage('pgLanding'); }
+function goBackHome(){ showPage('pgLanding'); }
+
+/* SIDEBAR NAVIGATION */
+function sdGoTo(page){
+  const titles={home:'Dashboard',library:'Disease Library',profile:'Profile',settings:'Settings',privacy:'Privacy Policy',compliance:'Compliance & Security'};
+  document.querySelectorAll('.sd-page').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  const target=document.getElementById('sd-'+page);
+  if(!target)return;
+  target.style.display='block';
+  target.classList.add('active');
+  document.querySelectorAll('.sd-nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.sd-nav-item').forEach(n=>{
+    const t=n.textContent.trim();
+    if((page==='home'&&t.includes('Dashboard'))||(page==='library'&&t.includes('Disease'))||(page==='profile'&&t.includes('Profile'))||(page==='settings'&&t.includes('Settings'))||(page==='privacy'&&t.includes('Privacy'))||(page==='compliance'&&t.includes('Compliance')))
+      n.classList.add('active');
+  });
+  document.getElementById('sdTopbarTitle').textContent=titles[page]||'PlantGuard AI';
+  if(page==='library'&&allDiseases.length===0)loadDiseases();
+  if(page==='profile')refreshProfilePage();
+  if(page==='compliance'){renderAuditLog();}
+  window.scrollTo(0,0);
+}
+
+function refreshProfilePage(){
+  if(currentUser){
+    document.getElementById('sdProfileGuest').style.display='none';
+    document.getElementById('sdProfileUser').style.display='block';
+    const ini=currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('sdProfileAv').textContent=ini;
+    document.getElementById('sdProfileName').textContent=currentUser.name;
+    document.getElementById('sdProfileEmail').textContent=currentUser.email;
+    const dt=document.getElementById('sdProfileDarkToggle');
+    if(dt)dt.classList.toggle('on',currentTheme==='dark');
+    const ls=document.getElementById('sdProfileLang');
+    if(ls)ls.value=currentLang;
+    loadProfileStats();
+  }else{
+    document.getElementById('sdProfileGuest').style.display='block';
+    document.getElementById('sdProfileUser').style.display='none';
+  }
+}
+async function loadProfileStats(){
+  const token=localStorage.getItem('plantguard_token');if(!token)return;
+  try{
+    const res=await fetch(API+'/history',{headers:{'Authorization':'Bearer '+token}});if(!res.ok)return;
+    const data=await res.json();
+    const total=data.history.length;
+    const healthy=data.history.filter(h=>h.condition.toLowerCase().includes('healthy')).length;
+    document.getElementById('sdProfileTotal').textContent=total;
+    document.getElementById('sdProfileHealthy').textContent=healthy;
+    document.getElementById('sdProfileDiseased').textContent=total-healthy;
+  }catch(e){}
+}
+
+/*  THEME  */
+function toggleTheme(){
+  currentTheme=currentTheme==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',currentTheme);
+  const dark=currentTheme==='dark';
+  ['themeBtn','sdThemeBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=dark?'☀️':'🌙';});
+  document.getElementById('sDarkToggle').className='stoggle '+(dark?'on':'off');
+  ['sdDarkToggle','sdProfileDarkToggle'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',dark);});
+  localStorage.setItem('pg_theme',currentTheme);
+}
+function sdDarkToggle(){toggleTheme();}
+function sdSetLang(v){if(v!==currentLang)toggleLang();}
+
+/*  LANGUAGE */
+function toggleLang(){
+  currentLang=currentLang==='en'?'rw':'en';
+  ['sdLangBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=currentLang==='en'?'🇷🇼 KIN':'🇬🇧 ENG';});
+  ['sLangSelect','sdLangSelect'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=currentLang;});
+}
+
+/*  SETTINGS MODAL  */
+function openSettings(){
+  document.getElementById('sDarkToggle').className='stoggle '+(currentTheme==='dark'?'on':'off');
+  document.getElementById('sLangSelect').value=currentLang;
+  if(currentUser){
+    const ini=currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('sAvatar').textContent=ini;
+    document.getElementById('sName').textContent=currentUser.name;
+    document.getElementById('sEmail').textContent=currentUser.email;
+    document.getElementById('sEmailRow').textContent=currentUser.email;
+    document.getElementById('sActivitySection').style.display='block';
+    document.getElementById('sAccountSection').style.display='block';
+    document.getElementById('sGuestSection').style.display='none';
+    loadSettingsStats();
+  }else{
+    document.getElementById('sAvatar').textContent='👤';
+    document.getElementById('sName').textContent='Guest';
+    document.getElementById('sEmail').textContent='Sign in to save your scans';
+    document.getElementById('sActivitySection').style.display='none';
+    document.getElementById('sAccountSection').style.display='none';
+    document.getElementById('sGuestSection').style.display='block';
+  }
+  document.getElementById('settingsModal').classList.add('active');
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('active');}
+function sToggleDark(btn){btn.classList.toggle('on');btn.classList.toggle('off');toggleTheme();}
+function sChangeLang(val){if(val!==currentLang)toggleLang();}
+async function loadSettingsStats(){
+  const token=localStorage.getItem('plantguard_token');if(!token)return;
+  try{
+    const res=await fetch(API+'/history',{headers:{'Authorization':'Bearer '+token}});if(!res.ok)return;
+    const data=await res.json();
+    const total=data.history.length;
+    const healthy=data.history.filter(h=>h.condition.toLowerCase().includes('healthy')).length;
+    document.getElementById('sTotal').textContent=total;
+    document.getElementById('sHealthy').textContent=healthy;
+    document.getElementById('sDiseased').textContent=total-healthy;
+  }catch(e){}
+}
+function sdSwitchSettings(sec,el){
+  ['appearance','account','model','danger'].forEach(s=>{
+    const e=document.getElementById('sds-'+s);if(e)e.style.display='none';
+  });
+  document.getElementById('sds-'+sec).style.display='block';
+  document.querySelectorAll('.sd-settings-nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/*  CONFIG PANEL */
+function openConfig(){
+  document.getElementById('configDrawer').classList.add('open');
+  document.getElementById('configBackdrop').classList.add('active');
+}
+function closeConfig(){
+  document.getElementById('configDrawer').classList.remove('open');
+  document.getElementById('configBackdrop').classList.remove('active');
+}
+function resetConfig(){
+  showToast('⚙️ Settings reset to defaults','info');
+}
+
+/*  WIZARD  */
+let wizardStep=0;
+const WIZARD_STEPS=4;
+const wizardTitles=['Welcome to PlantGuard AI 🌿','Upload Your Leaf Image 📷','Understanding Your Result 🧠','Treatment & Next Steps 🌱'];
+const wizardSubs=["Let's walk you through your first diagnosis.","Uploading is simple — click, drag, or take a photo.","Learn how to read the AI's diagnosis confidently.","Turn your diagnosis into action with the advice panel."];
+function openWizard(){wizardStep=0;wizardRender();document.getElementById('wizardOverlay').classList.add('active');}
+function closeWizard(){document.getElementById('wizardOverlay').classList.remove('active');localStorage.setItem('pg_wizard_done','1');addAuditEntry('system','Completed onboarding wizard');}
+function wizardNext(){if(wizardStep<WIZARD_STEPS-1){wizardStep++;wizardRender();}}
+function wizardBack(){if(wizardStep>0){wizardStep--;wizardRender();}}
+function wizardGo(s){wizardStep=s;wizardRender();}
+function wizardRender(){
+  document.querySelectorAll('.wiz-step').forEach((s,i)=>s.classList.toggle('active',i===wizardStep));
+  document.querySelectorAll('.wiz-dot').forEach((d,i)=>d.classList.toggle('active',i===wizardStep));
+  document.getElementById('wizardTitle').textContent=wizardTitles[wizardStep];
+  document.getElementById('wizardSub').textContent=wizardSubs[wizardStep];
+  document.getElementById('wizProgress').style.width=((wizardStep+1)/WIZARD_STEPS*100)+'%';
+}
+
+/*  AUTH  */
+async function checkAuth(){
+  const token=localStorage.getItem('plantguard_token');if(!token)return;
+  try{
+    const res=await fetch(API+'/auth/me',{headers:{'Authorization':'Bearer '+token}});
+    if(res.ok){const user=await res.json();setLoggedIn({name:user.name,email:user.email});sdLoadHistory();}
+    else localStorage.removeItem('plantguard_token');
+  }catch(e){}
+}
+function setLoggedIn(user){
+  currentUser=user;
+  const ini=user.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('authNavArea').innerHTML=`<div style="display:flex;align-items:center;gap:7px"><div class="user-pill"><div class="user-av">${ini}</div><span>${user.name.split(' ')[0]}</span></div><button class="nbtn" onclick="doLogout()" style="font-size:11px">Sign Out</button></div>`;
+  document.getElementById('sdUserAv').textContent=ini;
+  document.getElementById('sdUserName').textContent=user.name;
+  document.getElementById('sdUserEmail').textContent=user.email;
+  document.getElementById('sdAuthArea').innerHTML=`<div style="display:flex;align-items:center;gap:6px"><div class="sd-user-av">${ini}</div><button onclick="doLogout()" style="padding:5px 11px;border:1px solid var(--border);background:none;color:var(--muted);border-radius:7px;font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Sign Out</button></div>`;
+  document.getElementById('historyPanel').classList.add('visible');
+  document.getElementById('sdSettingsName').textContent=user.name;
+  document.getElementById('sdSettingsEmail').textContent=user.email;
+  document.getElementById('sdSettingsStatus').textContent='Active';
+  document.getElementById('sdHistorySub').textContent='Your recent analyses';
+  document.getElementById('sdGreeting').textContent=getGreeting()+', '+user.name.split(' ')[0]+' 👋';
+  addAuditEntry('auth','Signed in as '+user.email);
+  refreshProfilePage();
+}
+function getGreeting(){const h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening';}
+function openAuth(tab){document.getElementById('authModal').classList.add('active');switchTab(tab||'login');}
+function closeAuth(){document.getElementById('authModal').classList.remove('active');}
+function switchTab(tab){
+  document.getElementById('loginForm').style.display=tab==='login'?'block':'none';
+  document.getElementById('signupForm').style.display=tab==='signup'?'block':'none';
+  document.getElementById('tabLogin').classList.toggle('active',tab==='login');
+  document.getElementById('tabSignup').classList.toggle('active',tab==='signup');
+  ['loginError','signupError'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+}
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim(),pwd=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn'),err=document.getElementById('loginError');
+  if(!email||!pwd){showFormErr(err,'Please fill in all fields');return;}
+  btn.disabled=true;btn.textContent='Signing in...';
+  try{
+    const form=new URLSearchParams();form.append('username',email);form.append('password',pwd);
+    const res=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form});
+    const data=await res.json();
+    if(!res.ok){showFormErr(err,data.detail||'Login failed');return;}
+    localStorage.setItem('plantguard_token',data.access_token);
+    setLoggedIn({name:data.user_name,email:data.user_email});
+    closeAuth();sdLoadHistory();
+    showToast('Welcome back, '+data.user_name.split(' ')[0]+'! 🌿','success');
+  }catch(e){showFormErr(err,'Could not connect to server');}
+  finally{btn.disabled=false;btn.textContent='Sign In';}
+}
+async function doSignup(){
+  const name=document.getElementById('signupName').value.trim(),email=document.getElementById('signupEmail').value.trim(),pwd=document.getElementById('signupPassword').value;
+  const btn=document.getElementById('signupBtn'),err=document.getElementById('signupError');
+  if(!name||!email||!pwd){showFormErr(err,'Please fill in all fields');return;}
+  if(pwd.length<6){showFormErr(err,'Password must be at least 6 characters');return;}
+  btn.disabled=true;btn.textContent='Creating account...';
+  try{
+    const res=await fetch(API+'/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pwd})});
+    const data=await res.json();
+    if(!res.ok){showFormErr(err,data.detail||'Signup failed');return;}
+    localStorage.setItem('plantguard_token',data.access_token);
+    setLoggedIn({name:data.user_name,email:data.user_email});
+    closeAuth();sdLoadHistory();
+    showToast('Account created! Welcome, '+data.user_name.split(' ')[0]+'! 🌿','success');
+  }catch(e){showFormErr(err,'Could not connect to server');}
+  finally{btn.disabled=false;btn.textContent='Create Account';}
+}
+function doLogout(){
+  addAuditEntry('auth','Signed out');
+  localStorage.removeItem('plantguard_token');currentUser=null;lastResult=null;
+  document.getElementById('authNavArea').innerHTML=`<button class="nbtn primary" onclick="openAuth()">Sign In</button>`;
+  document.getElementById('sdUserAv').textContent='?';
+  document.getElementById('sdUserName').textContent='Guest';
+  document.getElementById('sdUserEmail').textContent='Not signed in';
+  document.getElementById('sdAuthArea').innerHTML=`<button onclick="openAuth()" class="sd-icon-btn" style="width:auto;padding:0 12px;font-size:11px;font-weight:700;background:var(--gb);border-color:var(--gb);color:white">Sign In</button>`;
+  document.getElementById('historyPanel').classList.remove('visible');
+  showToast('Signed out successfully.','info');
+}
+function showFormErr(el,msg){el.textContent=msg;el.style.display='block';}
+
+/*  HISTORY  */
+async function loadHistory(){
+  const token=localStorage.getItem('plantguard_token');if(!token)return;
+  try{
+    const res=await fetch(API+'/history',{headers:{'Authorization':'Bearer '+token}});if(!res.ok)return;
+    const data=await res.json();
+    document.getElementById('historyCount').textContent=data.history.length+' results';
+    const list=document.getElementById('historyList');
+    if(!data.history.length){list.innerHTML='<div class="hist-empty">No analyses yet.</div>';return;}
+    list.innerHTML=data.history.map(h=>{const ok=h.condition.toLowerCase().includes('healthy');return`<div class="hist-item"><div><div class="hist-plant">${ok?'✅':'⚠️'} ${titleCase(h.plant)}</div><div class="hist-cond">${titleCase(h.condition)} · ${h.prediction_time_ms}ms</div></div><div class="hist-conf">${h.confidence}%</div></div>`;}).join('');
+  }catch(e){}
+}
+async function sdLoadHistory(){
+  const token=localStorage.getItem('plantguard_token');if(!token)return;
+  try{
+    const res=await fetch(API+'/history',{headers:{'Authorization':'Bearer '+token}});if(!res.ok)return;
+    const data=await res.json();
+    document.getElementById('sdStatAV').textContent=data.history.length;
+    document.getElementById('sdStatA').textContent=data.history.length;
+    const diseased=data.history.filter(h=>!h.condition.toLowerCase().includes('healthy')).length;
+    document.getElementById('sdStatDV').textContent=diseased;
+    document.getElementById('sdStatD').textContent=diseased;
+    const list=document.getElementById('sdHistoryList');
+    if(!data.history.length){list.innerHTML='<div style="padding:18px;text-align:center;font-size:11px;color:var(--muted)">No analyses yet</div>';return;}
+    list.innerHTML=data.history.map(h=>{const ok=h.condition.toLowerCase().includes('healthy');return`<div class="sd-hist-item"><div><div class="sd-hi-plant">${ok?'✅':'⚠️'} ${titleCase(h.plant)}</div><div class="sd-hi-cond">${titleCase(h.condition)} · ${h.prediction_time_ms}ms</div></div><span class="sd-hi-badge ${ok?'ok':'dis'}">${h.confidence}%</span></div>`;}).join('');
+    renderDonut(data.history);
+    renderHeatmap(data.history);
+  }catch(e){}
+}
+
+/*  SHARE */
+function getShareText(){
+  if(!lastResult)return'';
+  const ok=lastResult.condition.toLowerCase().includes('healthy');
+  return ok?`✅ My ${titleCase(lastResult.plant)} is healthy! Confirmed by PlantGuard AI with ${lastResult.confidence}% confidence. #PlantGuardAI`:`⚠️ PlantGuard AI detected ${titleCase(lastResult.condition)} on my ${titleCase(lastResult.plant)} (${lastResult.confidence}% confidence). #PlantGuardAI`;
+}
+function openShareModal(){
+  if(!lastResult)return;
+  const ok=lastResult.condition.toLowerCase().includes('healthy');
+  document.getElementById('sharePreview').innerHTML=`<div style="font-size:24px;margin-bottom:5px">${ok?'✅':'⚠️'}</div><div style="font-size:18px;font-weight:700;color:var(--ink);text-transform:capitalize">${titleCase(lastResult.plant)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;text-transform:capitalize">${titleCase(lastResult.condition)}</div><div style="display:inline-flex;align-items:center;gap:5px;background:${ok?'var(--gb)':'var(--amber)'};color:white;padding:3px 11px;border-radius:999px;font-size:11px;font-weight:600;margin-top:8px">${lastResult.confidence}% · ${lastResult.prediction_time_ms}ms</div>`;
+  document.getElementById('shareModal').classList.add('active');
+}
+function closeShareModal(){document.getElementById('shareModal').classList.remove('active');}
+function doShare(type){
+  const text=getShareText();
+  if(type==='whatsapp'){window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');closeShareModal();}
+  else if(type==='twitter'){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank');closeShareModal();}
+  else if(type==='email'){window.location.href=`mailto:?subject=${encodeURIComponent('PlantGuard AI Result')}&body=${encodeURIComponent(text)}`;closeShareModal();}
+  else if(type==='copy'){navigator.clipboard.writeText(text).then(()=>{const lbl=document.getElementById('copyModalLbl');lbl.textContent='✅ Copied!';setTimeout(()=>lbl.textContent='Copy Text',2000);});}
+}
+function copyResult(){
+  if(!lastResult)return;
+  const text=`PlantGuard AI Result\nPlant: ${lastResult.plant}\nCondition: ${lastResult.condition}\nConfidence: ${lastResult.confidence}%\nAnalysed in ${lastResult.prediction_time_ms}ms`;
+  navigator.clipboard.writeText(text).then(()=>{const btn=document.getElementById('copyBtn');btn.textContent='✅ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 Copy';btn.classList.remove('copied');},2000);});
+}
+function sdCopy(){if(!lastResult)return;const text=`PlantGuard AI: ${titleCase(lastResult.plant)} - ${titleCase(lastResult.condition)} (${lastResult.confidence}%)`;navigator.clipboard.writeText(text).then(()=>{const btn=document.getElementById('sdCopyBtn');btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000);});}
+function sdShareWA(){if(!lastResult)return;window.open('https://wa.me/?text='+encodeURIComponent(getShareText()),'_blank');}
+function printResult(){if(!lastResult)return;const w=window.open('','_blank');w.document.write(`<html><head><title>PlantGuard Result</title></head><body><h2>PlantGuard AI Result</h2><p><b>Plant:</b> ${lastResult.plant}</p><p><b>Condition:</b> ${lastResult.condition}</p><p><b>Confidence:</b> ${lastResult.confidence}%</p><p><b>Time:</b> ${lastResult.prediction_time_ms}ms</p></body></html>`);w.document.close();w.print();}
+
+/*  UPLOAD - LANDING  */
+function resetUpload(){
+  selectedFile=null;document.getElementById('fileInput').value='';
+  document.getElementById('previewWrap').style.display='none';
+  document.getElementById('uploadZone').style.display='block';
+  document.getElementById('analyseBtn').disabled=true;
+  document.getElementById('resultBox').style.display='none';
+  document.getElementById('adviceBox').style.display='none';
+  document.getElementById('shareRow').style.display='none';
+  document.getElementById('predTime').style.display='none';
+  setWFStep(1);
+}
+function handleFile(e){const f=e.target.files[0];if(f)processFile(f);}
+function handleDragOver(e){e.preventDefault();document.getElementById('uploadZone').classList.add('over');}
+function handleDragLeave(){document.getElementById('uploadZone').classList.remove('over');}
+function handleDrop(e){e.preventDefault();document.getElementById('uploadZone').classList.remove('over');const f=e.dataTransfer.files[0];if(f)processFile(f);}
+function processFile(file){
+  selectedFile=file;const r=new FileReader();
+  r.onload=e=>{document.getElementById('previewImg').src=e.target.result;document.getElementById('previewWrap').style.display='block';document.getElementById('previewName').textContent=file.name;document.getElementById('uploadZone').style.display='none';};
+  r.readAsDataURL(file);document.getElementById('analyseBtn').disabled=false;
+  document.getElementById('resultBox').style.display='none';document.getElementById('adviceBox').style.display='none';
+  setWFStep(2);
+}
+
+
+function sdDrag(e,over){e.preventDefault();document.getElementById('sdUploadZone')?.classList.toggle('drag',over);}
+function sdDrop(e){e.preventDefault();document.getElementById('sdUploadZone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)sdProcess(f);}
+function sdFile(e){const f=e.target.files[0];if(f)sdProcess(f);}
+function sdProcess(file){
+  sdSelectedFile=file;const r=new FileReader();
+  r.onload=e=>{document.getElementById('sdPreviewImg').src=e.target.result;document.getElementById('sdPreviewWrap').style.display='block';document.getElementById('sdPreviewName').textContent=file.name;document.getElementById('sdUploadZone').style.display='none';};
+  r.readAsDataURL(file);document.getElementById('sdAnalyseBtn').disabled=false;
+  document.getElementById('sdResult').style.display='none';document.getElementById('sdAdvice').style.display='none';
+}
+function sdReset(){
+  sdSelectedFile=null;document.getElementById('sdFileInput').value='';
+  document.getElementById('sdPreviewWrap').style.display='none';
+  document.getElementById('sdUploadZone').style.display='block';
+  document.getElementById('sdAnalyseBtn').disabled=true;
+  document.getElementById('sdResult').style.display='none';
+  document.getElementById('sdAdvice').style.display='none';
+}
+
+function setWFStep(n){
+  for(let i=1;i<=3;i++){
+    const s=document.getElementById('wfS'+i);const c=document.getElementById('wfC'+i);
+    if(s){s.className='wf-step'+(i===n?' active':i<n?' done':'');}
+    if(c){c.className='wf-conn'+(i<n?' done':'');}
+  }
+}
+
+async function predict(){
+  if(!selectedFile)return;
+  document.getElementById('loadingState').style.display='block';
+  document.getElementById('resultBox').style.display='none';
+  document.getElementById('adviceBox').style.display='none';
+  document.getElementById('predTime').style.display='none';
+  document.getElementById('shareRow').style.display='none';
+  document.getElementById('analyseBtn').disabled=true;
+  setWFStep(2);
+  const formData=new FormData();formData.append('file',selectedFile);
+  const token=localStorage.getItem('plantguard_token');
+  const headers=token?{'Authorization':'Bearer '+token}:{};
+  try{
+    const res=await fetch(API+'/predict',{method:'POST',headers,body:formData});
+    const data=await res.json();
+    document.getElementById('loadingState').style.display='none';
+    document.getElementById('analyseBtn').disabled=false;
+    lastResult=data;renderResult(data);
+    if(currentUser)loadHistory();
+    updateSessionBar(data);
+    addAuditEntry('scan',`Scan: ${data.plant} — ${data.condition} (${data.confidence}%)`);
+  }catch(err){
+    document.getElementById('loadingState').style.display='none';
+    document.getElementById('analyseBtn').disabled=false;
+    showToast('Could not connect to API. Make sure the server is running at '+API,'error');
+  }
+}
+
+async function sdPredict(){
+  if(!sdSelectedFile)return;
+  document.getElementById('sdLoading').style.display='block';
+  document.getElementById('sdResult').style.display='none';
+  document.getElementById('sdAdvice').style.display='none';
+  document.getElementById('sdAnalyseBtn').disabled=true;
+  const formData=new FormData();formData.append('file',sdSelectedFile);
+  const token=localStorage.getItem('plantguard_token');
+  const headers=token?{'Authorization':'Bearer '+token}:{};
+  try{
+    const res=await fetch(API+'/predict',{method:'POST',headers,body:formData});
+    const data=await res.json();
+    document.getElementById('sdLoading').style.display='none';
+    document.getElementById('sdAnalyseBtn').disabled=false;
+    lastResult=data;sdRenderResult(data);
+    if(currentUser)sdLoadHistory();
+    updateSessionBar(data);
+    addAuditEntry('scan',`Scan: ${data.plant} — ${data.condition} (${data.confidence}%)`);
+  }catch(err){
+    document.getElementById('sdLoading').style.display='none';
+    document.getElementById('sdAnalyseBtn').disabled=false;
+    showToast('Could not connect to API.','error');
+  }
+}
+
+/* RENDER RESULTS */
+function renderResult(data){
+  const ok=data.condition.toLowerCase().includes('healthy');
+  document.getElementById('resultHeader').className='result-head '+(ok?'healthy':'disease');
+  document.getElementById('resultIcon').textContent=ok?'✅':'⚠️';
+  document.getElementById('resultCondition').textContent=titleCase(data.condition);
+  document.getElementById('resultPlant').textContent='🌱 '+titleCase(data.plant);
+  document.getElementById('confPercent').textContent=data.confidence+'%';
+  const fill=document.getElementById('confFill');
+  fill.className='conf-fill'+(ok?'':' dis');
+  setTimeout(()=>fill.style.width=data.confidence+'%',50);
+  document.getElementById('resultRaw').textContent='Class: '+data.raw_class;
+  document.getElementById('resultBox').style.display='block';
+  if(data.prediction_time_ms){document.getElementById('predTimeVal').textContent=data.prediction_time_ms;document.getElementById('predTime').style.display='flex';}
+  document.getElementById('shareRow').style.display='flex';
+  renderAdvice(data.condition,ok,'adviceBox','adviceTitle','adviceText');
+  setWFStep(3);
+  if(!ok)showToast('⚠️ Disease detected: '+titleCase(data.condition),'warning');
+}
+function sdRenderResult(data){
+  const ok=data.condition.toLowerCase().includes('healthy');
+  const isDanger=data.condition.toLowerCase().includes('late blight')||data.condition.toLowerCase().includes('virus');
+  document.getElementById('sdResultHeader').className='sd-result-head '+(ok?'healthy':isDanger?'danger':'disease');
+  document.getElementById('sdResultEmoji').textContent=ok?'✅':isDanger?'🚨':'⚠️';
+  document.getElementById('sdResultCond').textContent=titleCase(data.condition);
+  document.getElementById('sdResultPlant').textContent='🌱 '+titleCase(data.plant);
+  document.getElementById('sdConfPct').textContent=data.confidence+'%';
+  const fill=document.getElementById('sdConfFill');
+  fill.className='sd-conf-fill '+(data.confidence>=80?'high':data.confidence>=55?'med':'low');
+  setTimeout(()=>fill.style.width=data.confidence+'%',50);
+  if(data.prediction_time_ms)document.getElementById('sdPredTime').textContent='⚡ '+data.prediction_time_ms+'ms';
+  document.getElementById('sdRawClass').textContent=data.raw_class;
+  document.getElementById('sdFbThanks').style.display='none';
+  document.getElementById('sdFbUp').classList.remove('active');
+  document.getElementById('sdFbDown').classList.remove('active');
+  document.getElementById('sdResult').style.display='block';
+  document.getElementById('sdStatSpeed').textContent=data.prediction_time_ms+'ms';
+  const advice=getAdvice(data.condition,ok,currentLang);
+  document.getElementById('sdAdviceTitle').textContent=advice.title;
+  const color=ok?'var(--gb)':isDanger?'#d94f3d':'var(--amber)';
+  document.getElementById('sdAdviceText').innerHTML=advice.steps.map((s,i)=>`<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:6px"><span style="min-width:17px;height:17px;border-radius:50%;background:${color};color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</span><span style="font-size:10px;line-height:1.6;color:var(--muted)">${s}</span></div>`).join('');
+  document.getElementById('sdAdvice').className='sd-advice-box'+(ok?'':isDanger?' danger':' warn');
+  document.getElementById('sdAdvice').style.display='block';
+  if(!ok)showToast('⚠️ Disease detected: '+titleCase(data.condition),'warning');
+}
+function renderAdvice(condition,isHealthy,boxId,titleId,textId){
+  const advice=getAdvice(condition,isHealthy,currentLang);
+  const box=document.getElementById(boxId);
+  document.getElementById(titleId).textContent=advice.title;
+  const color=isHealthy?'#2d9e5f':'#f5a623';
+  document.getElementById(textId).innerHTML=advice.steps.map((s,i)=>`<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:7px"><span style="min-width:20px;height:20px;border-radius:50%;background:${color};color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</span><span style="font-size:12px;color:var(--ink);line-height:1.6">${s}</span></div>`).join('');
+  box.className='advice-box'+(isHealthy?'':' dis-adv');
+  document.getElementById(titleId).className='advice-title'+(isHealthy?'':' dis');
+  box.style.display='block';
+}
+
+/*  FEEDBACK  */
+function sdFeedback(type){
+  document.getElementById('sdFbUp').classList.toggle('active',type==='up');
+  document.getElementById('sdFbDown').classList.toggle('active',type==='down');
+  document.getElementById('sdFbThanks').style.display='inline';
+  showToast(type==='up'?'Thanks for the feedback! 👍':'We will use this to improve. 🌱','info');
+}
+function sdShowWhy(){
+  if(!lastResult)return;
+  alert(`Why this result?\n\nMobileNetV2 analysed your leaf against 38 disease categories (54,305 training images).\n\nMatched class: "${lastResult.raw_class}"\nConfidence: ${lastResult.confidence}%\n\n≥85% = Very reliable\n60–85% = Reliable\n<60% = Try a clearer photo`);
+}
+
+/*  DISEASES */
+async function loadDiseases(){
+  try{
+    const res=await fetch(API+'/diseases');const data=await res.json();allDiseases=data.diseases;
+    renderDiseases();renderTags();
+    const grid=document.getElementById('sdLibGrid');
+    if(grid){
+      grid.innerHTML=allDiseases.map(d=>{
+        const parts=d.split('___');const plant=parts[0].replace(/_/g,' ');const cond=parts[1]?parts[1].replace(/_/g,' '):'';const ok=cond.toLowerCase().includes('healthy');
+        return`<div class="sd-d-chip ${ok?'ok':''}" data-plant="${plant.toLowerCase()}" data-cond="${cond.toLowerCase()}"><div class="sd-d-name">${titleCase(plant)}</div><div class="sd-d-cond">${cond}</div></div>`;
+      }).join('');
+    }
+    const libCount=document.getElementById('sdLibCount');if(libCount)libCount.textContent=data.total+' conditions';
+    const badge=document.getElementById('sdDiseaseBadge');if(badge)badge.textContent=data.total;
+  }catch(e){console.log('API not reachable yet');}
+}
+function renderDiseases(){
+  const grid=document.getElementById('diseasesGrid');
+  grid.innerHTML=allDiseases.map(d=>{const parts=d.split('___');const plant=parts[0].replace(/_/g,' ');const cond=parts[1]?parts[1].replace(/_/g,' '):'';const ok=cond.toLowerCase().includes('healthy');return`<div class="d-chip ${ok?'healthy':''}" data-plant="${plant.toLowerCase()}" data-cond="${cond.toLowerCase()}">${plant}<br/><span style="opacity:.6;font-size:10px">${cond}</span></div>`;}).join('');
+  document.getElementById('searchCount').textContent=allDiseases.length+' conditions';
+}
+function filterDiseases(query){
+  const q=query.toLowerCase().trim();const chips=document.querySelectorAll('.d-chip');let visible=0;
+  chips.forEach(chip=>{const match=!q||chip.dataset.plant.includes(q)||chip.dataset.cond.includes(q);chip.style.display=match?'':'none';if(match)visible++;});
+  document.getElementById('searchCount').textContent=visible+' conditions';
+  document.getElementById('noResults').style.display=visible===0?'block':'none';
+  document.getElementById('showMoreBtn').style.display=q?'none':'block';
+  if(q)document.getElementById('diseasesGrid').classList.add('expanded');
+}
+function sdFilterDiseases(q){
+  q=q.toLowerCase().trim();const chips=document.querySelectorAll('.sd-d-chip');let count=0;
+  chips.forEach(c=>{const match=!q||c.dataset.plant.includes(q)||c.dataset.cond.includes(q);c.style.display=match?'':'none';if(match)count++;});
+  const cnt=document.getElementById('sdLibCount');if(cnt)cnt.textContent=count+' conditions';
+  const nr=document.getElementById('sdLibNoResults');if(nr)nr.style.display=count===0?'block':'none';
+  const smb=document.getElementById('sdLibShowMore');if(smb)smb.style.display=q?'none':'block';
+  const g=document.getElementById('sdLibGrid');if(g&&q)g.style.maxHeight='3000px';
+}
+function renderTags(){
+  const plants=[...new Set(allDiseases.map(d=>d.split('___')[0].replace(/_/g,' ')))];
+  document.getElementById('tagContainer').innerHTML=plants.map(p=>`<span class="dtag">${p}</span>`).join('');
+}
+function toggleDiseases(){
+  diseasesExpanded=!diseasesExpanded;
+  document.getElementById('diseasesGrid').classList.toggle('expanded',diseasesExpanded);
+  document.getElementById('showMoreBtn').textContent=diseasesExpanded?'Show less':'Show all diseases';
+}
+function sdToggleLib(){
+  sdLibExpanded=!sdLibExpanded;
+  const g=document.getElementById('sdLibGrid');
+  if(g)g.style.maxHeight=sdLibExpanded?'3000px':'420px';
+  const btn=document.getElementById('sdLibShowMore');
+  if(btn)btn.textContent=sdLibExpanded?'Show less':'Show all diseases';
+}
+
+/*  VISUALISATION  */
+const cropData=[{l:'Tomato',p:96},{l:'Potato',p:94},{l:'Maize',p:91},{l:'Pepper',p:88},{l:'Apple',p:85},{l:'Grape',p:82,a:true},{l:'Peach',p:79,a:true}];
+function renderBarChart(){
+  const el=document.getElementById('accBarChart');if(!el)return;
+  el.innerHTML=cropData.map(c=>`<div class="bar-row"><span class="bar-lbl">${c.l}</span><div class="bar-track"><div class="bar-fill${c.a?' amber-fill':''}" data-pct="${c.p}" style="width:0%"></div></div><span class="bar-pct">${c.p}%</span></div>`).join('');
+  setTimeout(()=>{document.querySelectorAll('.bar-fill').forEach(b=>b.style.width=b.dataset.pct+'%');},200);
+}
+function renderSparkline(){
+  const pts=[72,80,85,88,90,91,92,93,94,94];
+  const w=200,h=58,pad=5;const maxV=100,minV=60;
+  const coords=pts.map((v,i)=>{const x=pad+(i/(pts.length-1))*(w-pad*2);const y=h-pad-((v-minV)/(maxV-minV))*(h-pad*2);return[x,y];});
+  const linePath='M '+coords.map(c=>c.join(',')).join(' L ');
+  const areaPath=linePath+` L ${coords[coords.length-1][0]},${h} L ${coords[0][0]},${h} Z`;
+  const line=document.getElementById('sparkLine');const area=document.getElementById('sparkArea');const dot=document.getElementById('sparkDot');
+  if(line)line.setAttribute('d',linePath);
+  if(area)area.setAttribute('d',areaPath);
+  const last=coords[coords.length-1];
+  if(dot){dot.setAttribute('cx',last[0]);dot.setAttribute('cy',last[1]);}
+}
+function renderHeatmap(history){
+  const el=document.getElementById('heatRow');if(!el)return;
+  const cells=Array.from({length:30},(_,i)=>{
+    if(history&&history[i]){const conf=history[i].confidence;const ok=history[i].condition.toLowerCase().includes('healthy');const alpha=0.3+(conf/100)*0.7;const color=ok?`rgba(22,163,74,${alpha})`:`rgba(217,119,6,${alpha})`;return`<div class="heat-cell" title="${conf}% - ${history[i].condition}" style="background:${color}"></div>`;}
+    return`<div class="heat-cell"></div>`;
+  });
+  el.innerHTML=cells.join('');
+}
+function renderDonut(history){
+  const el=document.getElementById('donutVal');const note=document.getElementById('donutNote');
+  if(!history||!history.length)return;
+  const total=history.length;const healthy=history.filter(h=>h.condition.toLowerCase().includes('healthy')).length;const diseased=total-healthy;
+  if(el)el.textContent=total;
+  if(note)note.textContent=`${healthy} healthy · ${diseased} diseased`;
+  const circ=376;const hPct=healthy/total;
+  const dh=document.querySelector('.donut-fill-h');const dd=document.querySelector('.donut-fill-d');
+  if(dh){setTimeout(()=>{dh.style.strokeDashoffset=circ-(hPct*circ);},200);}
+  if(dd){const dStart=hPct*circ;const dLen=(diseased/total)*circ;setTimeout(()=>{dd.style.strokeDasharray=`${dLen} ${circ-dLen}`;dd.style.strokeDashoffset=-(dStart-circ);},400);}
+}
+function initViz(){renderBarChart();renderSparkline();renderHeatmap(null);}
+
+/* SESSION BAR  */
+function updateSessionBar(result){
+  sessionScans++;
+  const bar=document.getElementById('sdLiveBar');if(bar)bar.style.display='flex';
+  const cnt=document.getElementById('sessionScanCount');if(cnt)cnt.textContent=sessionScans;
+  const last=document.getElementById('sessionLastResult');
+  if(last&&result){const ok=result.condition.toLowerCase().includes('healthy');last.textContent=(ok?'✅ ':'⚠️ ')+titleCase(result.condition);last.style.color=ok?'#16a34a':'#d97706';}
+}
+
+/* AUDIT LOG  */
+function addAuditEntry(type,action){
+  const now=new Date();
+  const time=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  auditEntries.unshift({type,action,time});
+  if(auditEntries.length>50)auditEntries.pop();
+  localStorage.setItem('pg_audit',JSON.stringify(auditEntries));
+  renderAuditLog();
+}
+function renderAuditLog(){
+  const body=document.getElementById('auditLogBody');if(!body)return;
+  if(!auditEntries.length){body.innerHTML='<div style="padding:20px;text-align:center;font-size:11px;color:var(--muted)">No activity recorded yet.</div>';return;}
+  body.innerHTML=auditEntries.slice(0,15).map(e=>`<div class="audit-entry"><div class="audit-dot- audit-dot-${e.type}" style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${e.type==='scan'?'#16a34a':e.type==='auth'?'#2563eb':e.type==='export'?'#d97706':'#dc2626'}"></div><div class="audit-action">${e.action}</div><div class="audit-time-lbl">${e.time}</div></div>`).join('');
+}
+function clearAuditLog(){auditEntries=[];localStorage.removeItem('pg_audit');renderAuditLog();showToast('Audit log cleared','info');}
+function exportUserData(){
+  const data={exportDate:new Date().toISOString(),auditLog:auditEntries,preferences:{theme:currentTheme,language:currentLang}};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='plantguard_my_data.json';a.click();
+  URL.revokeObjectURL(url);
+  addAuditEntry('export','User exported data');
+  showToast('📥 Data exported','success');
+}
+function deleteUserData(){
+  if(!confirm('This will delete all your scan history and audit logs. Are you sure?'))return;
+  localStorage.removeItem('pg_audit');localStorage.removeItem('plantguard_token');
+  auditEntries=[];renderAuditLog();
+  showToast('All data deleted','warning');
+}
+
+/*  TOAST */
+function showToast(msg,type){
+  const stack=document.getElementById('toastStack');if(!stack)return;
+  const colors={success:'#041f0f',warning:'#78350f',info:'#1e3a5f',error:'#7f1d1d'};
+  const t=document.createElement('div');
+  t.className='toast-item';t.style.background=colors[type]||colors.success;t.textContent=msg;
+  stack.appendChild(t);
+  setTimeout(()=>{try{stack.removeChild(t);}catch(e){}},3200);
+}
+window.showToast=showToast;
+
+/* ADVICE DATABASE */
+const diseaseAdvice={
+  en:{
+    healthy:{title:"✅ Your plant is healthy!",steps:["No disease detected. Your crop looks good.","Continue watering consistently at the base of the plant.","Remove dead or yellowing leaves regularly.","Monitor your plants weekly for any early signs of change.","Maintain good spacing between plants to allow air flow."]},
+    default:{title:"⚠️ Disease Detected",steps:["Separate the affected plant from healthy ones immediately.","Remove and destroy all infected leaves. Do not compost them.","Apply an appropriate fungicide or pesticide.","Ensure good air circulation and avoid overwatering.","Consult your local agricultural extension officer for specific treatment."]},
+    early_blight:{title:"⚠️ Early Blight Detected",steps:["Remove all infected lower leaves immediately and destroy them.","Apply copper-based fungicide every 7 days.","Water at the base of the plant only. Avoid wetting the leaves.","Rotate your crops to a different location next season.","Space plants adequately to improve air circulation."]},
+    late_blight:{title:"🚨 Late Blight Detected — Act Now",steps:["This disease spreads very fast. Act today.","Remove and destroy all infected plant material immediately.","Apply systemic fungicide such as metalaxyl right away.","Do not compost any infected material.","Check all surrounding plants every day."]},
+    mosaic_virus:{title:"🚨 Mosaic Virus — No Cure",steps:["There is no cure for this viral disease.","Remove and destroy infected plants completely.","Control aphids and whiteflies that carry the virus.","Wash hands and tools after touching infected plants.","Plant certified virus-free seeds next season."]},
+    powdery_mildew:{title:"⚠️ Powdery Mildew Detected",steps:["Remove all heavily infected leaves.","Apply neem oil or potassium bicarbonate spray.","Improve air circulation around the plant.","Water in the morning so plants dry by evening.","Avoid applying too much nitrogen fertilizer."]},
+  }
+};
+function getAdvice(condition,isHealthy,lang){
+  const db=diseaseAdvice[lang]||diseaseAdvice.en;
+  if(isHealthy)return db.healthy;
+  const c=condition.toLowerCase().replace(/ /g,'_');
+  for(const key of Object.keys(db)){if(key!=='default'&&c.includes(key))return db[key];}
+  return db.default;
+}
+
+function titleCase(str){return str.replace(/\w\S*/g,t=>t.charAt(0).toUpperCase()+t.substr(1).toLowerCase());}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));
+    document.getElementById('wizardOverlay')?.classList.remove('active');
+    closeConfig();
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openConfig();}
+});
+
+const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.1});
+document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+const vizObserver=new IntersectionObserver(entries=>{if(entries[0].isIntersecting){initViz();vizObserver.disconnect();}},{threshold:.2});
+const perfGrid=document.getElementById('perfGrid');if(perfGrid)vizObserver.observe(perfGrid);
+
+window.addEventListener('scroll',()=>{document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400);});
+
+window.addEventListener('DOMContentLoaded',()=>{
+  // Load saved theme
+  if(localStorage.getItem('pg_theme')==='dark'){
+    currentTheme='dark';document.documentElement.setAttribute('data-theme','dark');
+    ['themeBtn','sdThemeBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='☀️';});
+    document.getElementById('sDarkToggle').className='stoggle on';
+    document.getElementById('sdDarkToggle')?.classList.add('on');
+  }
+  document.getElementById('sdGreeting').textContent=getGreeting()+' 👋';
+  // Show wizard to first-time visitors
+  if(!localStorage.getItem('pg_wizard_done')){setTimeout(openWizard,1200);}
+  // Init systems
+  loadDiseases();
+  checkAuth();
+  renderAuditLog();
+  // Show guest history message
+  setTimeout(()=>{
+    const list=document.getElementById('historyList');
+    if(list&&!currentUser)list.innerHTML=`<div class="hist-empty"><div style="font-size:22px;margin-bottom:7px">🔒</div><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px">Sign in to save history</div><div style="font-size:11px;color:var(--muted);margin-bottom:10px">Free account, takes 30 seconds</div><button onclick="openAuth()" style="padding:7px 16px;background:var(--gb);color:white;border:none;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Sign In Free</button></div>`;
+    const sdList=document.getElementById('sdHistoryList');
+    if(sdList&&!currentUser)sdList.innerHTML=`<div style="padding:18px;text-align:center"><div style="font-size:20px;margin-bottom:5px">🔒</div><div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:3px">Sign in to save history</div><button onclick="openAuth()" style="padding:6px 14px;background:var(--gb);color:white;border:none;border-radius:999px;font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:7px">Sign In</button></div>`;
+  },900);
+  // Responsive sidebar toggle
+  if(window.innerWidth<=900){
+    const mobileToggle=document.getElementById('sdMobileToggle');
+    if(mobileToggle)mobileToggle.style.display='block';
+  }
+});
+</script>
+</body>
+</html>
