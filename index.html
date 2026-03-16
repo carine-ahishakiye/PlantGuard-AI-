@@ -1436,9 +1436,9 @@
 <button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">↑</button>
 
 <script>
-const API = window.location.hostname === '127.0.0.1' 
-  ? 'http://127.0.0.1:8000' 
-  : '';
+const API = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+  ? 'http://127.0.0.1:8000'
+  : window.location.origin;
 let selectedFile=null, sdSelectedFile=null;
 let allDiseases=[], diseasesExpanded=false, sdLibExpanded=false;
 let currentLang='en', currentTheme='light', currentUser=null, lastResult=null;
